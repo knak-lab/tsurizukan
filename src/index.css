@@ -1,0 +1,536 @@
+@import "tailwindcss";
+
+/*
+ * デザイントークン・コンポーネントCSS
+ * docs/tsurizukan_mockup.html の :root と各クラス定義から実際の値を移植。
+ */
+:root {
+  --navy: #16324f;
+  --navy-deep: #0d1f33;
+  --card: #f4faf8;
+  --card-line: #d8ece7;
+  --coral: #ff7a5c;
+  --teal: #1c8c8c;
+  --ink: #1a2b32;
+  --sub: #5f7580;
+
+  --baby: #8fd3f4;
+  --kid: #3ba7e0;
+  --adult: #29a97e;
+  --nushi: #d9a53a;
+  --nushi-deep: #9c6f1e;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Zen Kaku Gothic New", sans-serif;
+  background:
+    radial-gradient(circle at 15% 0%, #1d3f61 0%, transparent 45%),
+    radial-gradient(circle at 90% 10%, #123049 0%, transparent 40%),
+    var(--navy-deep);
+  color: var(--ink);
+  min-height: 100vh;
+  padding-bottom: 60px;
+}
+
+/* ---- ヘッダー ---- */
+header.app {
+  padding: 28px 20px 20px;
+  text-align: center;
+  color: #eaf6f4;
+}
+header.app .eyebrow {
+  font-size: 12px;
+  letter-spacing: 0.28em;
+  color: #7fb8c9;
+  margin-bottom: 6px;
+}
+header.app h1 {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 900;
+  font-size: 30px;
+  margin: 0;
+  letter-spacing: 0.04em;
+}
+header.app .wave {
+  width: 64px;
+  height: 3px;
+  margin: 14px auto 0;
+  background: linear-gradient(90deg, var(--baby), var(--teal), var(--nushi));
+  border-radius: 3px;
+}
+
+/* ---- フィルタータブ ---- */
+.filters {
+  max-width: 520px;
+  margin: 22px auto 0;
+  padding: 0 16px;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+  scrollbar-width: none;
+}
+.filter-row::-webkit-scrollbar {
+  display: none;
+}
+.filter-row + .filter-row {
+  margin-top: 8px;
+}
+.filter-label {
+  flex: 0 0 auto;
+  font-size: 10.5px;
+  color: #7fb8c9;
+  letter-spacing: 0.08em;
+  padding-right: 2px;
+  white-space: nowrap;
+}
+.chip {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #dcebe9;
+  font-size: 12.5px;
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+.chip .count {
+  font-size: 10px;
+  opacity: 0.7;
+}
+.chip.active {
+  background: linear-gradient(100deg, var(--teal), #23a5a0);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 700;
+}
+.chip.active.env-brackish {
+  background: linear-gradient(100deg, #3b8ca0, #57b6b0);
+}
+.chip.active.env-fresh {
+  background: linear-gradient(100deg, #2f8f6e, #3fbf8f);
+}
+.chip.active.tax-cephalo {
+  background: linear-gradient(100deg, #7457c9, #a084e8);
+}
+.chip.active.tax-crust {
+  background: linear-gradient(100deg, #c97a3f, #e0a15e);
+}
+
+.result-count {
+  max-width: 520px;
+  margin: 14px auto 0;
+  padding: 0 20px;
+  font-size: 11.5px;
+  color: #7fb8c9;
+}
+
+/* ---- 図鑑グリッド ---- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px;
+  padding: 12px 16px 8px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.empty-state {
+  max-width: 520px;
+  margin: 20px auto;
+  padding: 32px 20px;
+  text-align: center;
+  color: #9db3ba;
+  font-size: 13px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 16px;
+  border: 1px dashed rgba(255, 255, 255, 0.15);
+}
+
+.fish-card {
+  position: relative;
+  background: var(--card);
+  border-radius: 20px;
+  border: 1px solid var(--card-line);
+  overflow: hidden;
+  padding: 0 0 12px;
+  cursor: pointer;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+  box-shadow: 0 6px 16px rgba(13, 31, 51, 0.25);
+}
+.fish-card:active {
+  transform: scale(0.97);
+}
+.fish-card::before {
+  /* うろこ風の微パターン。図鑑ページの質感 */
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(
+    circle at 20% 20%,
+    rgba(28, 140, 140, 0.05) 0 6px,
+    transparent 7px
+  );
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+.ribbon {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(100deg, var(--navy) 0%, var(--teal) 100%);
+  color: #fff;
+  padding: 8px 12px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  clip-path: polygon(0 0, 100% 0, 92% 100%, 0% 100%);
+}
+.ribbon .en {
+  font-size: 9px;
+  font-weight: 500;
+  opacity: 0.75;
+  letter-spacing: 0.05em;
+}
+
+.class-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 9px 3px 7px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.class-badge.nushi {
+  background: linear-gradient(100deg, var(--nushi), var(--nushi-deep));
+}
+
+.illust-wrap {
+  position: relative;
+  height: 118px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 4px;
+}
+.illust-wrap .fish-illust {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 6px 10px;
+  filter: drop-shadow(0 6px 8px rgba(13, 31, 51, 0.25));
+}
+
+/* 未捕獲: illustration画像をシルエット化（新規画像は作らずCSSフィルターのみで表現） */
+.fish-silhouette {
+  filter: brightness(0);
+  opacity: 0.3;
+}
+/* .illust-wrap .fish-illust の drop-shadow より詳細度を上げて確実に上書きする */
+.illust-wrap .fish-illust.fish-silhouette {
+  filter: brightness(0);
+  opacity: 0.3;
+}
+
+.fish-meta {
+  padding: 2px 12px 0;
+  text-align: center;
+}
+.fish-meta .size-range {
+  font-size: 11px;
+  color: var(--sub);
+}
+
+/* ---- モーダル(詳細シート) ---- */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 31, 51, 0.65);
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 50;
+}
+.overlay.show {
+  display: flex;
+}
+.sheet {
+  background: var(--card);
+  width: 100%;
+  max-width: 520px;
+  max-height: 88vh;
+  overflow-y: auto;
+  border-radius: 24px 24px 0 0;
+  padding-bottom: 28px;
+  animation: slideup 0.25s ease;
+}
+@keyframes slideup {
+  from {
+    transform: translateY(30px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.sheet-head {
+  background: linear-gradient(100deg, var(--navy) 0%, var(--teal) 100%);
+  color: #fff;
+  padding: 16px 18px 60px;
+  position: relative;
+}
+.sheet-head .close {
+  /* 見た目は28pxの丸のまま、クリック/タップ判定だけ44x44pxに拡大する */
+  position: absolute;
+  top: 4px;
+  right: 6px;
+  width: 44px;
+  height: 44px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.sheet-head .close-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.sheet-head .eyebrow {
+  font-size: 11px;
+  opacity: 0.75;
+  letter-spacing: 0.1em;
+}
+.sheet-head h2 {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-size: 24px;
+  margin: 4px 0 0;
+}
+/* 円形イラストが下に重ならないヘッダー用（記録追加フォームなど） */
+.sheet-head.compact {
+  padding-bottom: 20px;
+}
+.sheet-illust {
+  width: 150px;
+  height: 150px;
+  margin: -56px auto 0;
+  background: #fff;
+  border-radius: 50%;
+  border: 5px solid var(--card);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(13, 31, 51, 0.35);
+  font-size: 76px;
+  position: relative;
+  z-index: 2;
+}
+.sheet-illust .fish-illust {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 14px;
+}
+
+.class-strip {
+  display: flex;
+  justify-content: center;
+  margin-top: 10px;
+}
+.class-track {
+  width: 88%;
+  height: 10px;
+  border-radius: 6px;
+  background: linear-gradient(90deg, var(--baby), var(--kid), var(--adult), var(--nushi));
+  position: relative;
+  margin-top: 6px;
+}
+.class-track .marker {
+  position: absolute;
+  top: -6px;
+  width: 2px;
+  height: 22px;
+  background: var(--navy-deep);
+}
+.class-labels {
+  display: flex;
+  justify-content: space-between;
+  width: 88%;
+  margin: 6px auto 0;
+  font-size: 10px;
+  color: var(--sub);
+}
+
+.info-sections {
+  padding: 22px 18px 4px;
+}
+.info-block {
+  margin-bottom: 18px;
+}
+.info-block .label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--teal);
+  margin-bottom: 6px;
+}
+.info-block .label .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--coral);
+}
+.info-block p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.7;
+  color: var(--ink);
+}
+
+/* ---- 釣果記録フォーム ---- */
+.record-form {
+  padding: 22px 18px 26px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  position: relative;
+}
+.form-label {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--teal);
+}
+.form-input {
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 14px;
+  font-family: inherit;
+  color: var(--ink);
+  background: #fff;
+  outline: none;
+}
+.form-input:focus {
+  border-color: var(--teal);
+}
+.fish-suggest {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  margin-top: 4px;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(13, 31, 51, 0.18);
+  z-index: 5;
+}
+.fish-suggest-item {
+  padding: 9px 12px;
+  font-size: 13px;
+  color: var(--ink);
+  cursor: pointer;
+}
+.fish-suggest-item:hover {
+  background: rgba(28, 140, 140, 0.08);
+}
+.fish-suggest-item .en {
+  font-size: 10.5px;
+  color: var(--sub);
+  margin-left: 4px;
+}
+.fish-suggest-empty {
+  padding: 12px;
+  font-size: 12.5px;
+  color: var(--sub);
+  text-align: center;
+}
+.form-submit {
+  margin-top: 4px;
+  padding: 12px;
+  border: none;
+  border-radius: 999px;
+  background: linear-gradient(100deg, var(--coral), #ff9478);
+  color: #fff;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+}
+.form-submit:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* ---- 記録追加ボタン(FAB) ---- */
+.fab-add {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(100deg, var(--coral), #ff9478);
+  color: #fff;
+  border: none;
+  font-size: 28px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 20px rgba(255, 122, 92, 0.45);
+  cursor: pointer;
+  z-index: 40;
+}
+.fab-add:active {
+  transform: scale(0.95);
+}
