@@ -1,5 +1,6 @@
 import { classInfo } from "../utils/classify"
 import { isCaught, bestRecordFor } from "../utils/isCaught"
+import { getRarityTier, getRarityTierClass } from "../utils/rarityTier"
 
 export default function FishCard({ fish, records, onClick }) {
   const caught = isCaught(fish.id, records)
@@ -8,6 +9,7 @@ export default function FishCard({ fish, records, onClick }) {
 
   return (
     <div className="fish-card" onClick={onClick}>
+      <div className={`rarity-badge ${getRarityTierClass(fish.rarity)}`}>{getRarityTier(fish.rarity)}</div>
       <div className="ribbon">
         <span className="name">{fish.name}</span>
         <span className="en">{fish.en}</span>

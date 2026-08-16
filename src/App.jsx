@@ -1,8 +1,10 @@
 import { useState } from "react"
 import fishMaster from "./data/fishMaster"
 import { getRecords } from "./services/storage"
+import { getRarityTier } from "./utils/rarityTier"
 import FilterTabs from "./components/FilterTabs"
 import FishCard from "./components/FishCard"
+import SeriesCard from "./components/SeriesCard"
 import FishDetailSheet from "./components/FishDetailSheet"
 import AddRecordForm from "./components/AddRecordForm"
 import CollectionRank from "./components/CollectionRank"
@@ -21,6 +23,21 @@ function App() {
   const filtered = fishMaster.filter(
     (f) => (activeEnv === "all" || f.env === activeEnv) && (activeTax === "all" || f.tax === activeTax),
   )
+
+  const standalone = filtered.filter((f) => !f.seriesId)
+  const teiban = standalone.filter((f) => getRarityTier(f.rarity) === "定番")
+  const rare = standalone.filter((f) => getRarityTier(f.rarity) === "レア")
+  const legend = standalone.filter((f) => getRarityTier(f.rarity) === "幻")
+
+  const seriesGroups = Object.values(
+    filtered
+      .filter((f) => f.seriesId)
+      .reduce((acc, f) => {
+        acc[f.seriesId] = acc[f.seriesId] || []
+        acc[f.seriesId].push(f)
+        return acc
+      }, {}),
+  ).map((members) => members.slice().sort((a, b) => a.seriesStage - b.seriesStage))
 
   function handleRecordSaved(result) {
     setRecords(getRecords())
@@ -57,11 +74,56 @@ function App() {
           甲殻類セクションは今後追加予定です 🦀
         </div>
       ) : (
-        <div className="grid">
-          {filtered.map((f) => (
-            <FishCard key={f.id} fish={f} records={records} onClick={() => setSelectedFish(f)} />
-          ))}
-        </div>
+        <>
+          {teiban.length > 0 && (
+            <section className="fish-section">
+              <h3 className="fish-section-title">定番</h3>
+              <div className="grid">
+                {teiban.map((f) => (
+                  <FishCard key={f.id} fish={f} records={records} onClick={() => setSelectedFish(f)} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {seriesGroups.length > 0 && (
+            <section className="fish-section">
+              <h3 className="fish-section-title">出世魚シリーズ</h3>
+              <div className="series-list">
+                {seriesGroups.map((members) => (
+                  <SeriesCard
+                    key={members[0].seriesId}
+                    members={members}
+                    records={records}
+                    onSelect={setSelectedFish}
+                  />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {rare.length > 0 && (
+            <section className="fish-section">
+              <h3 className="fish-section-title">レア</h3>
+              <div className="grid">
+                {rare.map((f) => (
+                  <FishCard key={f.id} fish={f} records={records} onClick={() => setSelectedFish(f)} />
+                ))}
+              </div>
+            </section>
+          )}
+
+          {legend.length > 0 && (
+            <section className="fish-section">
+              <h3 className="fish-section-title">幻</h3>
+              <div className="grid">
+                {legend.map((f) => (
+                  <FishCard key={f.id} fish={f} records={records} onClick={() => setSelectedFish(f)} />
+                ))}
+              </div>
+            </section>
+          )}
+        </>
       )}
 
       {selectedFish && (

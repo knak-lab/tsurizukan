@@ -184,6 +184,90 @@ header.app .wave {
   border: 1px dashed rgba(255, 255, 255, 0.15);
 }
 
+/* ---- 図鑑セクション見出し ---- */
+.fish-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 520px;
+  margin: 20px auto 4px;
+  padding: 0 16px;
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: #eaf6f4;
+  letter-spacing: 0.04em;
+}
+.fish-section-title::before {
+  content: "";
+  width: 4px;
+  height: 14px;
+  border-radius: 2px;
+  background: linear-gradient(180deg, var(--baby), var(--teal), var(--nushi));
+}
+
+/* ---- 出世魚シリーズカード ---- */
+.series-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 4px 16px 8px;
+  max-width: 520px;
+  margin: 0 auto;
+}
+.series-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--card);
+  border: 1px solid var(--card-line);
+  border-radius: 20px;
+  padding: 10px 8px;
+  box-shadow: 0 6px 16px rgba(13, 31, 51, 0.25);
+}
+.series-stage {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: none;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.series-stage-illust {
+  width: 100%;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.series-stage-illust .fish-illust {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: scale(1.3);
+}
+.series-stage-name {
+  font-size: 10.5px;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.series-arrow {
+  flex: 0 0 auto;
+  color: var(--sub);
+  font-size: 14px;
+  padding: 0 2px;
+}
+
 .fish-card {
   position: relative;
   background: var(--card);
@@ -252,6 +336,30 @@ header.app .wave {
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 .class-badge.nushi {
+  background: linear-gradient(100deg, var(--nushi), var(--nushi-deep));
+}
+
+/* レア度バッジ（クラスバッジとは別枠・カード右上） */
+.rarity-badge {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 3;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.rarity-badge.tier-common {
+  background: rgba(13, 31, 51, 0.55);
+}
+.rarity-badge.tier-rare {
+  background: linear-gradient(100deg, var(--teal), #23a5a0);
+}
+.rarity-badge.tier-legend {
   background: linear-gradient(100deg, var(--nushi), var(--nushi-deep));
 }
 

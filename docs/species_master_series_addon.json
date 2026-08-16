@@ -1,0 +1,6 @@
+[
+{"id":"070","name":"セイゴ","en":"Japanese Sea Bass (juvenile)","tax":"fish","feature":"スズキの若魚。銀白色の細長い体、まだエラ蓋の鋭さが控えめ。群れで汽水域にいることが多い。"},
+{"id":"071","name":"フッコ","en":"Japanese Sea Bass (sub-adult)","tax":"fish","feature":"セイゴとスズキの中間段階。体高がやや増し、銀白色の体にエラ蓋の鋭さが出てくる。","reference":true},
+{"id":"072","name":"イナ","en":"Flathead Grey Mullet (juvenile)","tax":"fish","feature":"ボラの若魚。細身の灰青色の体で、成魚よりスマートな体型。群れで水面をはねる。"},
+{"id":"073","name":"トド","en":"Flathead Grey Mullet (elder)","tax":"fish","feature":"ボラの最終成長段階。体が大きく太く、頭部も大きくなった老成魚。「とどのつまり」の語源。"}
+]
