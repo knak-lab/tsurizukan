@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'icons.svg'],
+      includeAssets: ['favicon.svg', 'favicon.png', 'favicon-32.png', 'icons.svg'],
       manifest: {
         name: 'つりずかん',
         short_name: 'つりずかん',
