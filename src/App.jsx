@@ -5,6 +5,7 @@ import FilterTabs from "./components/FilterTabs"
 import FishCard from "./components/FishCard"
 import FishDetailSheet from "./components/FishDetailSheet"
 import AddRecordForm from "./components/AddRecordForm"
+import CollectionRank from "./components/CollectionRank"
 
 function App() {
   const [activeEnv, setActiveEnv] = useState("all")
@@ -23,6 +24,7 @@ function App() {
         <div className="eyebrow">TSURI ZUKAN</div>
         <h1>つりずかん</h1>
         <div className="wave" />
+        <CollectionRank records={records} />
       </header>
 
       <FilterTabs

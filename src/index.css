@@ -64,6 +64,27 @@ header.app .wave {
   border-radius: 3px;
 }
 
+.collection-rank {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 14px;
+  padding: 6px 16px;
+  border-radius: 999px;
+  background: rgba(28, 140, 140, 0.15);
+  border: 1px solid rgba(127, 184, 201, 0.3);
+}
+.collection-rank-label {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: #eaf6f4;
+}
+.collection-rank-progress {
+  font-size: 11px;
+  color: #7fb8c9;
+}
+
 /* ---- フィルタータブ ---- */
 .filters {
   max-width: 520px;
