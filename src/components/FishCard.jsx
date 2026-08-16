@@ -8,18 +8,19 @@ export default function FishCard({ fish, records, onClick }) {
 
   return (
     <div className="fish-card" onClick={onClick}>
-      {ci && (
-        <div
-          className={`class-badge ${ci.key === "nushi" ? "nushi" : ""}`}
-          style={ci.key === "nushi" ? undefined : { background: `var(${ci.colorVar})` }}
-        >
-          {ci.emoji} {ci.label}
-        </div>
-      )}
       <div className="ribbon">
-        {fish.name} <span className="en">({fish.en})</span>
+        <span className="name">{fish.name}</span>
+        <span className="en">{fish.en}</span>
       </div>
       <div className="illust-wrap">
+        {ci && (
+          <div
+            className={`class-badge ${ci.key === "nushi" ? "nushi" : ""}`}
+            style={ci.key === "nushi" ? undefined : { background: `var(${ci.colorVar})` }}
+          >
+            {ci.emoji} {ci.label}
+          </div>
+        )}
         <img
           className={caught ? "fish-illust" : "fish-illust fish-silhouette"}
           src={fish.illustration}

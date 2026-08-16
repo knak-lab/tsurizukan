@@ -196,8 +196,9 @@ header.app .wave {
 .ribbon {
   position: relative;
   display: flex;
-  align-items: center;
-  gap: 6px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
   background: linear-gradient(100deg, var(--navy) 0%, var(--teal) 100%);
   color: #fff;
   padding: 8px 12px;
@@ -214,10 +215,11 @@ header.app .wave {
 }
 
 .class-badge {
+  /* illust-wrap内・画像の左上に、名前欄(ribbon)とは別枠で配置する */
   position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 2;
+  top: 6px;
+  left: 6px;
+  z-index: 3;
   display: flex;
   align-items: center;
   gap: 3px;
@@ -239,6 +241,7 @@ header.app .wave {
   align-items: center;
   justify-content: center;
   margin-top: 4px;
+  overflow: hidden;
 }
 .illust-wrap .fish-illust {
   width: 100%;
@@ -246,17 +249,19 @@ header.app .wave {
   object-fit: contain;
   padding: 6px 10px;
   filter: drop-shadow(0 6px 8px rgba(13, 31, 51, 0.25));
+  transform: scale(1.75);
 }
 
-/* 未捕獲: illustration画像をシルエット化（新規画像は作らずCSSフィルターのみで表現） */
+/* 未捕獲: illustration画像をシルエット化（新規画像は作らずCSSフィルターのみで表現）。サイズは拡大せずそのまま。 */
 .fish-silhouette {
   filter: brightness(0);
   opacity: 0.3;
 }
-/* .illust-wrap .fish-illust の drop-shadow より詳細度を上げて確実に上書きする */
+/* .illust-wrap .fish-illust の drop-shadow/transform より詳細度を上げて確実に上書きする */
 .illust-wrap .fish-illust.fish-silhouette {
   filter: brightness(0);
   opacity: 0.3;
+  transform: scale(1);
 }
 
 .fish-meta {
