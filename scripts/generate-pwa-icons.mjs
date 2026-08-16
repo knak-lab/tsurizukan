@@ -7,24 +7,29 @@ const outDir = resolve(root, 'public', 'pwa')
 mkdirSync(outDir, { recursive: true })
 
 const source = resolve(root, 'scripts', 'assets', 'app-icon-source.png')
-// Sampled from the source image's corner pixel.
-const maskableBg = { r: 54, g: 34, b: 16 }
+// Source has a transparent background outside the circular badge.
+const solidBg = { r: 255, g: 255, b: 255 }
 
-async function renderIcon(size, { maskable = false, name }) {
+async function renderIcon(size, { maskable = false, flatten = false, name }) {
   if (!maskable) {
-    await sharp(source).resize(size, size, { fit: 'cover' }).png().toFile(resolve(outDir, name))
+    let img = sharp(source).resize(size, size, { fit: 'cover' })
+    if (flatten) img = img.flatten({ background: solidBg })
+    await img.png().toFile(resolve(outDir, name))
     return
   }
 
   const contentSize = Math.round(size * 0.8)
-  const content = await sharp(source).resize(contentSize, contentSize, { fit: 'cover' }).toBuffer()
+  const content = await sharp(source)
+    .resize(contentSize, contentSize, { fit: 'cover' })
+    .flatten({ background: solidBg })
+    .toBuffer()
 
   await sharp({
     create: {
       width: size,
       height: size,
       channels: 3,
-      background: maskableBg,
+      background: solidBg,
     },
   })
     .composite([
@@ -41,7 +46,8 @@ async function renderIcon(size, { maskable = false, name }) {
 await renderIcon(192, { name: 'icon-192.png' })
 await renderIcon(512, { name: 'icon-512.png' })
 await renderIcon(512, { maskable: true, name: 'icon-512-maskable.png' })
-await renderIcon(180, { name: 'apple-touch-icon.png' })
+// iOS fills transparent regions of apple-touch-icon with black, so flatten to white.
+await renderIcon(180, { flatten: true, name: 'apple-touch-icon.png' })
 await sharp(source).resize(48, 48, { fit: 'cover' }).png().toFile(resolve(root, 'public', 'favicon.png'))
 await sharp(source).resize(32, 32, { fit: 'cover' }).png().toFile(resolve(root, 'public', 'favicon-32.png'))
 
