@@ -569,12 +569,37 @@ header.app .wave {
 .record-list-section {
   padding: 18px 18px 4px;
 }
+.record-list-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
 .record-list-title {
   font-family: "Zen Maru Gothic", sans-serif;
   font-weight: 700;
   font-size: 13px;
   color: var(--teal);
-  margin-bottom: 8px;
+}
+.record-list-header .record-list-title {
+  margin-bottom: 0;
+}
+.record-add-button {
+  flex: 0 0 auto;
+  border: none;
+  background: rgba(255, 122, 92, 0.12);
+  color: var(--coral);
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 11.5px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+.record-add-button:hover {
+  background: rgba(255, 122, 92, 0.22);
 }
 .record-list-empty {
   font-size: 12.5px;

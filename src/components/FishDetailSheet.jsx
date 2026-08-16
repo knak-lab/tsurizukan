@@ -9,8 +9,9 @@ function formatDate(dateStr) {
   return dateStr.replaceAll("-", "/")
 }
 
-export default function FishDetailSheet({ fish, records, onClose, onRecordsChange }) {
+export default function FishDetailSheet({ fish, records, onClose, onRecordSaved }) {
   const [editingRecord, setEditingRecord] = useState(null)
+  const [showAddHere, setShowAddHere] = useState(false)
 
   const caught = isCaught(fish.id, records)
   const best = caught ? bestRecordFor(fish.id, records) : null
@@ -25,7 +26,7 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordsChang
   function handleDelete(recordId) {
     if (!window.confirm("この記録を削除しますか？")) return
     deleteRecord(recordId)
-    onRecordsChange()
+    onRecordSaved()
   }
 
   return (
@@ -77,7 +78,12 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordsChang
           </div>
 
           <div className="record-list-section">
-            <div className="record-list-title">あなたの記録（{fishRecords.length}件）</div>
+            <div className="record-list-header">
+              <div className="record-list-title">あなたの記録（{fishRecords.length}件）</div>
+              <button type="button" className="record-add-button" onClick={() => setShowAddHere(true)}>
+                ＋ 記録を追加
+              </button>
+            </div>
             {fishRecords.length === 0 ? (
               <div className="record-list-empty">まだ記録がありません</div>
             ) : (
@@ -153,7 +159,18 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordsChang
           onClose={() => setEditingRecord(null)}
           onSaved={() => {
             setEditingRecord(null)
-            onRecordsChange()
+            onRecordSaved()
+          }}
+        />
+      )}
+
+      {showAddHere && (
+        <AddRecordForm
+          fish={fish}
+          onClose={() => setShowAddHere(false)}
+          onSaved={(result) => {
+            setShowAddHere(false)
+            onRecordSaved(result)
           }}
         />
       )}

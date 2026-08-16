@@ -22,6 +22,15 @@ function App() {
     (f) => (activeEnv === "all" || f.env === activeEnv) && (activeTax === "all" || f.tax === activeTax),
   )
 
+  function handleRecordSaved(result) {
+    setRecords(getRecords())
+    if (result?.type === "first-catch") {
+      setCaptureFish(result.fish)
+    } else if (result?.type === "best-update") {
+      setBestUpdate(result)
+    }
+  }
+
   return (
     <>
       <header className="app">
@@ -60,7 +69,7 @@ function App() {
           fish={selectedFish}
           records={records}
           onClose={() => setSelectedFish(null)}
-          onRecordsChange={() => setRecords(getRecords())}
+          onRecordSaved={handleRecordSaved}
         />
       )}
 
@@ -77,13 +86,8 @@ function App() {
         <AddRecordForm
           onClose={() => setShowAddForm(false)}
           onSaved={(result) => {
-            setRecords(getRecords())
             setShowAddForm(false)
-            if (result?.type === "first-catch") {
-              setCaptureFish(result.fish)
-            } else if (result?.type === "best-update") {
-              setBestUpdate(result)
-            }
+            handleRecordSaved(result)
           }}
         />
       )}
