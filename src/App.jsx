@@ -50,7 +50,12 @@ function App() {
       )}
 
       {selectedFish && (
-        <FishDetailSheet fish={selectedFish} records={records} onClose={() => setSelectedFish(null)} />
+        <FishDetailSheet
+          fish={selectedFish}
+          records={records}
+          onClose={() => setSelectedFish(null)}
+          onRecordsChange={() => setRecords(getRecords())}
+        />
       )}
 
       <button

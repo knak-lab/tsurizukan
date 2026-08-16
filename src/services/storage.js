@@ -30,3 +30,10 @@ export function deleteRecord(recordId) {
   localStorage.setItem(RECORDS_KEY, JSON.stringify(next))
   return next
 }
+
+/** 記録を1件更新する。patchで渡したフィールドだけ上書きする */
+export function updateRecord(recordId, patch) {
+  const next = getRecords().map((r) => (r.id === recordId ? { ...r, ...patch } : r))
+  localStorage.setItem(RECORDS_KEY, JSON.stringify(next))
+  return next
+}
