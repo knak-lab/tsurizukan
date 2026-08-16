@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react"
 import fishMaster from "../data/fishMaster"
 import { classifyBySize } from "../utils/classify"
-import { saveRecord, updateRecord } from "../services/storage"
+import { getRecords, saveRecord, updateRecord } from "../services/storage"
 
 function todayStr() {
   const d = new Date()
@@ -45,12 +45,24 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
     e.preventDefault()
     if (!canSave) return
     const sizeClass = classifyBySize(Number(size), selectedFish.sizeMin, selectedFish.sizeMax)
+
     if (isEdit) {
       updateRecord(record.id, { size: Number(size), sizeClass, date })
-    } else {
-      saveRecord({ fishId: selectedFish.id, size: Number(size), sizeClass, date })
+      onSaved(null)
+      return
     }
-    onSaved()
+
+    // 新規記録の場合のみ、初捕獲/自己ベスト更新を判定する（編集による上書きは対象外）
+    const existingRecords = getRecords().filter((r) => r.fishId === selectedFish.id)
+    saveRecord({ fishId: selectedFish.id, size: Number(size), sizeClass, date })
+
+    if (existingRecords.length === 0) {
+      onSaved({ type: "first-catch", fish: selectedFish })
+    } else if (Number(size) > Math.max(...existingRecords.map((r) => r.size))) {
+      onSaved({ type: "best-update", fish: selectedFish, size: Number(size) })
+    } else {
+      onSaved(null)
+    }
   }
 
   return (

@@ -6,6 +6,8 @@ import FishCard from "./components/FishCard"
 import FishDetailSheet from "./components/FishDetailSheet"
 import AddRecordForm from "./components/AddRecordForm"
 import CollectionRank from "./components/CollectionRank"
+import CaptureEffect from "./components/CaptureEffect"
+import BestUpdateToast from "./components/BestUpdateToast"
 
 function App() {
   const [activeEnv, setActiveEnv] = useState("all")
@@ -13,6 +15,8 @@ function App() {
   const [selectedFish, setSelectedFish] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [records, setRecords] = useState(() => getRecords())
+  const [captureFish, setCaptureFish] = useState(null)
+  const [bestUpdate, setBestUpdate] = useState(null)
 
   const filtered = fishMaster.filter(
     (f) => (activeEnv === "all" || f.env === activeEnv) && (activeTax === "all" || f.tax === activeTax),
@@ -72,11 +76,22 @@ function App() {
       {showAddForm && (
         <AddRecordForm
           onClose={() => setShowAddForm(false)}
-          onSaved={() => {
+          onSaved={(result) => {
             setRecords(getRecords())
             setShowAddForm(false)
+            if (result?.type === "first-catch") {
+              setCaptureFish(result.fish)
+            } else if (result?.type === "best-update") {
+              setBestUpdate(result)
+            }
           }}
         />
+      )}
+
+      {captureFish && <CaptureEffect fish={captureFish} onClose={() => setCaptureFish(null)} />}
+
+      {bestUpdate && (
+        <BestUpdateToast fish={bestUpdate.fish} size={bestUpdate.size} onClose={() => setBestUpdate(null)} />
       )}
     </>
   )
