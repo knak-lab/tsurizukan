@@ -1,10 +1,13 @@
 // scale: 図鑑カードのillust-wrap内で画像を拡大縮小する倍率。枠(illust-wrap)のサイズは共通のまま、
 // 画像だけをclassに応じて拡大縮小することで、捕まえたサイズの迫力を表現する。
+// illust-wrapは横長(約1.86:1)の箱だが魚画像は正方形キャンバスなので、object-fit:containで
+// 高さ基準にフィットした後は縦方向が伸びやすい。1.85を超えるとマサバ等の口先や尾が枠外に
+// 切れて消えることを実機確認済みなので、最大値は1.85を超えないようにする。
 const CLASS_INFO = {
-  baby: { key: "baby", label: "ベビー", emoji: "🐣", colorVar: "--baby", scale: 1.15 },
-  kid: { key: "kid", label: "ひよっこ", emoji: "🐥", colorVar: "--kid", scale: 1.5 },
-  adult: { key: "adult", label: "おとな", emoji: "🐟", colorVar: "--adult", scale: 1.85 },
-  nushi: { key: "nushi", label: "ヌシ", emoji: "👑", colorVar: "--nushi", scale: 2.3 },
+  baby: { key: "baby", label: "ベビー", emoji: "🐣", colorVar: "--baby", scale: 1.0 },
+  kid: { key: "kid", label: "ひよっこ", emoji: "🐥", colorVar: "--kid", scale: 1.35 },
+  adult: { key: "adult", label: "おとな", emoji: "🐟", colorVar: "--adult", scale: 1.6 },
+  nushi: { key: "nushi", label: "ヌシ", emoji: "👑", colorVar: "--nushi", scale: 1.85 },
 }
 
 export const CLASS_ORDER = ["baby", "kid", "adult", "nushi"]
