@@ -1,8 +1,10 @@
+// scale: 図鑑カードのillust-wrap内で画像を拡大縮小する倍率。枠(illust-wrap)のサイズは共通のまま、
+// 画像だけをclassに応じて拡大縮小することで、捕まえたサイズの迫力を表現する。
 const CLASS_INFO = {
-  baby: { key: "baby", label: "ベビー", emoji: "🐣", colorVar: "--baby" },
-  kid: { key: "kid", label: "ひよっこ", emoji: "🐥", colorVar: "--kid" },
-  adult: { key: "adult", label: "おとな", emoji: "🐟", colorVar: "--adult" },
-  nushi: { key: "nushi", label: "ヌシ", emoji: "👑", colorVar: "--nushi" },
+  baby: { key: "baby", label: "ベビー", emoji: "🐣", colorVar: "--baby", scale: 1.15 },
+  kid: { key: "kid", label: "ひよっこ", emoji: "🐥", colorVar: "--kid", scale: 1.5 },
+  adult: { key: "adult", label: "おとな", emoji: "🐟", colorVar: "--adult", scale: 1.85 },
+  nushi: { key: "nushi", label: "ヌシ", emoji: "👑", colorVar: "--nushi", scale: 2.3 },
 }
 
 export const CLASS_ORDER = ["baby", "kid", "adult", "nushi"]

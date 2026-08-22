@@ -27,6 +27,7 @@ export default function FishCard({ fish, records, onClick }) {
           className={caught ? "fish-illust" : "fish-illust fish-silhouette"}
           src={fish.illustration}
           alt={fish.name}
+          style={caught && ci ? { transform: `scale(${ci.scale})` } : undefined}
         />
       </div>
       <div className="fish-meta">
