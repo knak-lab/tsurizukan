@@ -9,9 +9,10 @@ function formatDate(dateStr) {
   return dateStr.replaceAll("-", "/")
 }
 
-export default function FishDetailSheet({ fish, records, onClose, onRecordSaved }) {
+export default function FishDetailSheet({ fish, records, readOnly, onClose, onRecordSaved }) {
   const [editingRecord, setEditingRecord] = useState(null)
   const [showAddHere, setShowAddHere] = useState(false)
+  const [deleteError, setDeleteError] = useState(null)
 
   const caught = isCaught(fish.id, records)
   const best = caught ? bestRecordFor(fish.id, records) : null
@@ -23,10 +24,15 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordSaved 
     .slice()
     .sort((a, b) => (a.date < b.date ? 1 : a.date > b.date ? -1 : 0))
 
-  function handleDelete(recordId) {
+  async function handleDelete(recordId) {
     if (!window.confirm("この記録を削除しますか？")) return
-    deleteRecord(recordId)
-    onRecordSaved()
+    setDeleteError(null)
+    try {
+      await deleteRecord(recordId)
+      onRecordSaved()
+    } catch (err) {
+      setDeleteError(err.message || "削除に失敗しました")
+    }
   }
 
   return (
@@ -79,11 +85,14 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordSaved 
 
           <div className="record-list-section">
             <div className="record-list-header">
-              <div className="record-list-title">あなたの記録（{fishRecords.length}件）</div>
-              <button type="button" className="record-add-button" onClick={() => setShowAddHere(true)}>
-                ＋ 記録を追加
-              </button>
+              <div className="record-list-title">{readOnly ? "記録" : "あなたの記録"}（{fishRecords.length}件）</div>
+              {!readOnly && (
+                <button type="button" className="record-add-button" onClick={() => setShowAddHere(true)}>
+                  ＋ 記録を追加
+                </button>
+              )}
             </div>
+            {deleteError && <div className="auth-error">{deleteError}</div>}
             {fishRecords.length === 0 ? (
               <div className="record-list-empty">まだ記録がありません</div>
             ) : (
@@ -92,7 +101,12 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordSaved 
                   const rci = classInfo(r.sizeClass)
                   return (
                     <li key={r.id} className="record-item">
-                      <button type="button" className="record-item-main" onClick={() => setEditingRecord(r)}>
+                      <button
+                        type="button"
+                        className="record-item-main"
+                        disabled={readOnly}
+                        onClick={() => !readOnly && setEditingRecord(r)}
+                      >
                         <span className="record-date">{formatDate(r.date)}</span>
                         <span className="record-size">{r.size}cm</span>
                         {rci && (
@@ -104,14 +118,16 @@ export default function FishDetailSheet({ fish, records, onClose, onRecordSaved 
                           </span>
                         )}
                       </button>
-                      <button
-                        type="button"
-                        className="record-delete"
-                        onClick={() => handleDelete(r.id)}
-                        aria-label="この記録を削除"
-                      >
-                        🗑️
-                      </button>
+                      {!readOnly && (
+                        <button
+                          type="button"
+                          className="record-delete"
+                          onClick={() => handleDelete(r.id)}
+                          aria-label="この記録を削除"
+                        >
+                          🗑️
+                        </button>
+                      )}
                     </li>
                   )
                 })}

@@ -2,6 +2,7 @@ import { useMemo, useState } from "react"
 import fishMaster from "../data/fishMaster"
 import { classifyBySize } from "../utils/classify"
 import { getRecords, saveRecord, updateRecord } from "../services/storage"
+import { useAuth } from "../context/AuthContext"
 
 function todayStr() {
   const d = new Date()
@@ -15,11 +16,14 @@ function todayStr() {
  * - 記録編集: fish（対象魚種、変更不可）と record（既存の記録）を渡す
  */
 export default function AddRecordForm({ fish: fixedFish, record, onClose, onSaved }) {
+  const { user } = useAuth()
   const isEdit = Boolean(record)
   const [query, setQuery] = useState(fixedFish ? fixedFish.name : "")
   const [selectedId, setSelectedId] = useState(fixedFish ? fixedFish.id : "")
   const [size, setSize] = useState(record ? String(record.size) : "")
   const [date, setDate] = useState(record ? record.date : todayStr())
+  const [submitting, setSubmitting] = useState(false)
+  const [error, setError] = useState(null)
 
   const selectedFish = fixedFish || fishMaster.find((f) => f.id === selectedId) || null
 
@@ -39,29 +43,37 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
     setSelectedId("")
   }
 
-  const canSave = Boolean(selectedFish) && Number(size) > 0 && Boolean(date)
+  const canSave = Boolean(selectedFish) && Number(size) > 0 && Boolean(date) && !submitting
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     if (!canSave) return
+    setError(null)
+    setSubmitting(true)
     const sizeClass = classifyBySize(Number(size), selectedFish.sizeMin, selectedFish.sizeMax)
 
-    if (isEdit) {
-      updateRecord(record.id, { size: Number(size), sizeClass, date })
-      onSaved(null)
-      return
-    }
+    try {
+      if (isEdit) {
+        await updateRecord(record.id, { size: Number(size), sizeClass, date })
+        onSaved(null)
+        return
+      }
 
-    // 新規記録の場合のみ、初捕獲/自己ベスト更新を判定する（編集による上書きは対象外）
-    const existingRecords = getRecords().filter((r) => r.fishId === selectedFish.id)
-    saveRecord({ fishId: selectedFish.id, size: Number(size), sizeClass, date })
+      // 新規記録の場合のみ、初捕獲/自己ベスト更新を判定する（編集による上書きは対象外）
+      const existingRecords = (await getRecords(user.id)).filter((r) => r.fishId === selectedFish.id)
+      await saveRecord({ fishId: selectedFish.id, size: Number(size), sizeClass, date })
 
-    if (existingRecords.length === 0) {
-      onSaved({ type: "first-catch", fish: selectedFish })
-    } else if (Number(size) > Math.max(...existingRecords.map((r) => r.size))) {
-      onSaved({ type: "best-update", fish: selectedFish, size: Number(size) })
-    } else {
-      onSaved(null)
+      if (existingRecords.length === 0) {
+        onSaved({ type: "first-catch", fish: selectedFish })
+      } else if (Number(size) > Math.max(...existingRecords.map((r) => r.size))) {
+        onSaved({ type: "best-update", fish: selectedFish, size: Number(size) })
+      } else {
+        onSaved(null)
+      }
+    } catch (err) {
+      setError(err.message || "保存に失敗しました")
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -131,8 +143,10 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
             <input type="date" className="form-input" value={date} onChange={(e) => setDate(e.target.value)} />
           </label>
 
+          {error && <div className="auth-error">{error}</div>}
+
           <button type="submit" className="form-submit" disabled={!canSave}>
-            {isEdit ? "更新する" : "保存する"}
+            {submitting ? "送信中..." : isEdit ? "更新する" : "保存する"}
           </button>
         </form>
       </div>
