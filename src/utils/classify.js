@@ -12,13 +12,24 @@ const CLASS_INFO = {
 
 export const CLASS_ORDER = ["baby", "kid", "adult", "nushi"]
 
-/** sizeMin〜sizeMaxの範囲を4等分し、sizeがどのクラスに入るかを判定する */
+// ひよっこ→おとな の境目を、標準サイズ帯(sizeMin〜sizeMax)の下から何割の位置に置くか。
+// 0.4 なら「下限からレンジの40%まで」がひよっこ、そこから上限までがおとな。
+const KID_ADULT_SPLIT = 0.4
+
+/**
+ * その魚の標準サイズ帯(sizeMin〜sizeMax)を基準にクラスを判定する。
+ *  - sizeMin 未満      → baby (ベビー): その魚としては明らかに小さい
+ *  - sizeMin 〜 split   → kid  (ひよっこ)
+ *  - split 〜 sizeMax   → adult(おとな)
+ *  - sizeMax 以上      → nushi(ヌシ): 標準サイズの上限に到達 or 超過
+ * 例) sizeMin=25, sizeMax=50 なら -25 ベビー / 25-35 ひよっこ / 35-50 おとな / 50- ヌシ
+ */
 export function classifyBySize(size, sizeMin, sizeMax) {
-  const pct = sizePercent(size, sizeMin, sizeMax)
-  if (pct < 25) return "baby"
-  if (pct < 50) return "kid"
-  if (pct < 75) return "adult"
-  return "nushi"
+  if (!(sizeMax > sizeMin)) return "baby"
+  if (size < sizeMin) return "baby"
+  if (size >= sizeMax) return "nushi"
+  const split = sizeMin + (sizeMax - sizeMin) * KID_ADULT_SPLIT
+  return size < split ? "kid" : "adult"
 }
 
 export function classInfo(classKey) {

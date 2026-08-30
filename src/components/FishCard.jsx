@@ -1,11 +1,13 @@
-import { classInfo } from "../utils/classify"
+import { classInfo, classifyBySize } from "../utils/classify"
 import { isCaught, bestRecordFor } from "../utils/isCaught"
 import { getRarityTier, getRarityTierClass } from "../utils/rarityTier"
 
 export default function FishCard({ fish, records, onClick }) {
   const caught = isCaught(fish.id, records)
   const best = caught ? bestRecordFor(fish.id, records) : null
-  const ci = best ? classInfo(best.sizeClass) : null
+  // 記録保存時の sizeClass ではなく、その魚の現在のサイズ帯から都度判定する
+  // (判定基準の変更や管理画面でのサイズ帯編集を、過去の記録にも即反映させるため)
+  const ci = best ? classInfo(classifyBySize(best.size, fish.sizeMin, fish.sizeMax)) : null
 
   return (
     <div className="fish-card" onClick={onClick}>

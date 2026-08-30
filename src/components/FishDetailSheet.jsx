@@ -1,5 +1,5 @@
 import { useState } from "react"
-import { classInfo, sizePercent } from "../utils/classify"
+import { classInfo, classifyBySize, sizePercent } from "../utils/classify"
 import { isCaught, bestRecordFor } from "../utils/isCaught"
 import { deleteRecord } from "../services/storage"
 import AddRecordForm from "./AddRecordForm"
@@ -16,7 +16,8 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
 
   const caught = isCaught(fish.id, records)
   const best = caught ? bestRecordFor(fish.id, records) : null
-  const ci = best ? classInfo(best.sizeClass) : null
+  // sizeClass は保存済みの値ではなく、現在のサイズ帯から都度判定する（utils/classify.js）
+  const ci = best ? classInfo(classifyBySize(best.size, fish.sizeMin, fish.sizeMax)) : null
   const pct = best ? sizePercent(best.size, fish.sizeMin, fish.sizeMax) : 0
 
   const fishRecords = records
@@ -98,7 +99,7 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
             ) : (
               <ul className="record-list">
                 {fishRecords.map((r) => {
-                  const rci = classInfo(r.sizeClass)
+                  const rci = classInfo(classifyBySize(r.size, fish.sizeMin, fish.sizeMax))
                   return (
                     <li key={r.id} className="record-item">
                       <button
