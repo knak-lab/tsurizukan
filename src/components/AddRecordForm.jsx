@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react"
-import fishMaster from "../data/fishMaster"
 import { classifyBySize } from "../utils/classify"
 import { getRecords, saveRecord, updateRecord } from "../services/storage"
 import { useAuth } from "../context/AuthContext"
+import { useFishMaster } from "../context/FishMasterContext"
 
 function todayStr() {
   const d = new Date()
@@ -17,6 +17,7 @@ function todayStr() {
  */
 export default function AddRecordForm({ fish: fixedFish, record, onClose, onSaved }) {
   const { user } = useAuth()
+  const { fishMaster } = useFishMaster()
   const isEdit = Boolean(record)
   const [query, setQuery] = useState(fixedFish ? fixedFish.name : "")
   const [selectedId, setSelectedId] = useState(fixedFish ? fixedFish.id : "")
@@ -31,7 +32,7 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
     if (!query) return fishMaster
     const q = query.toLowerCase()
     return fishMaster.filter((f) => f.name.includes(query) || f.en.toLowerCase().includes(q))
-  }, [query])
+  }, [query, fishMaster])
 
   function handlePick(fish) {
     setSelectedId(fish.id)

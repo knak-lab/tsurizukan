@@ -4,13 +4,16 @@ import { registerSW } from 'virtual:pwa-register'
 import './index.css'
 import App from './App.jsx'
 import { AuthProvider } from './context/AuthContext.jsx'
+import { FishMasterProvider } from './context/FishMasterContext.jsx'
 
 registerSW({ immediate: true })
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <AuthProvider>
-      <App />
+      <FishMasterProvider>
+        <App />
+      </FishMasterProvider>
     </AuthProvider>
   </StrictMode>,
 )

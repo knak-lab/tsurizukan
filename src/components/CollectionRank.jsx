@@ -1,7 +1,6 @@
-import fishMaster from "../data/fishMaster"
 import { getCompletionRank } from "../utils/rank"
 
-export default function CollectionRank({ records }) {
+export default function CollectionRank({ records, fishMaster }) {
   const fishIds = new Set(fishMaster.map((f) => f.id))
   const caughtIds = new Set(records.filter((r) => fishIds.has(r.fishId)).map((r) => r.fishId))
   const totalCount = fishMaster.length

@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react"
-import fishMaster from "./data/fishMaster"
 import { useAuth } from "./context/AuthContext"
+import { useFishMaster } from "./context/FishMasterContext"
 import { getRecords, hasPendingLegacyImport, importLegacyRecords } from "./services/storage"
 import { getRarityTier } from "./utils/rarityTier"
 import FilterTabs from "./components/FilterTabs"
@@ -14,9 +14,11 @@ import BestUpdateToast from "./components/BestUpdateToast"
 import AuthScreen from "./components/AuthScreen"
 import NicknameSetupPrompt from "./components/NicknameSetupPrompt"
 import UserSwitcher from "./components/UserSwitcher"
+import AdminScreen from "./components/AdminScreen"
 
 function App() {
   const { user, profile, loading: authLoading, signOut } = useAuth()
+  const { fishMaster, loading: fishLoading, error: fishError, reload: reloadFish } = useFishMaster()
 
   const [activeEnv, setActiveEnv] = useState("all")
   const [activeTax, setActiveTax] = useState("all")
@@ -31,6 +33,7 @@ function App() {
   const [showNicknamePrompt, setShowNicknamePrompt] = useState(false)
   const [importBanner, setImportBanner] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [showAdmin, setShowAdmin] = useState(false)
 
   const targetUserId = viewedUserId ?? user?.id
   const isOwnCollection = !viewedUserId || viewedUserId === user?.id
@@ -101,6 +104,20 @@ function App() {
     return <AuthScreen />
   }
 
+  if (fishLoading) {
+    return <div className="empty-state">図鑑を読み込み中...</div>
+  }
+
+  if (fishError) {
+    return (
+      <div className="empty-state">
+        図鑑の読み込みに失敗しました。
+        <br />
+        通信状態を確認してください。
+      </div>
+    )
+  }
+
   const filtered = fishMaster.filter(
     (f) => (activeEnv === "all" || f.env === activeEnv) && (activeTax === "all" || f.tax === activeTax),
   )
@@ -126,11 +143,18 @@ function App() {
         <div className="eyebrow">TSURI ZUKAN</div>
         <h1>つりずかん</h1>
         <div className="wave" />
-        <CollectionRank records={records} />
+        <CollectionRank records={records} fishMaster={fishMaster} />
         <UserSwitcher currentUserId={user.id} viewedUserId={viewedUserId} onSelect={setViewedUserId} />
-        <button type="button" className="auth-link" style={{ color: "#7fb8c9" }} onClick={signOut}>
-          ログアウト
-        </button>
+        <div className="header-actions">
+          {profile?.is_admin && (
+            <button type="button" className="auth-link" style={{ color: "#7fb8c9" }} onClick={() => setShowAdmin(true)}>
+              管理
+            </button>
+          )}
+          <button type="button" className="auth-link" style={{ color: "#7fb8c9" }} onClick={signOut}>
+            ログアウト
+          </button>
+        </div>
       </header>
 
       {showNicknamePrompt && <NicknameSetupPrompt onClose={() => setShowNicknamePrompt(false)} />}
@@ -250,6 +274,13 @@ function App() {
             setShowAddForm(false)
             handleRecordSaved(result)
           }}
+        />
+      )}
+
+      {showAdmin && (
+        <AdminScreen
+          onClose={() => setShowAdmin(false)}
+          onChanged={reloadFish}
         />
       )}
 
