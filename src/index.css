@@ -1179,3 +1179,149 @@ header.app .wave {
   font-family: "Zen Maru Gothic", sans-serif;
   font-weight: 700;
 }
+
+/* ---- 要望掲示板（feature request board） ---- */
+.admin-tabs {
+  margin: 0 0 4px;
+}
+.fr-body {
+  padding: 16px 18px 4px;
+}
+.fr-sort {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.fr-sort button {
+  flex: 0 0 auto;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--card-line);
+  background: #fff;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sub);
+  cursor: pointer;
+}
+.fr-sort button.active {
+  background: linear-gradient(100deg, var(--teal), #23a5a0);
+  border-color: transparent;
+  color: #fff;
+  font-weight: 700;
+}
+.fr-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fr-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid var(--card-line);
+  border-radius: 14px;
+  padding: 12px;
+}
+.fr-card-main {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+.fr-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.fr-title {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--ink);
+}
+.fr-desc {
+  margin: 6px 0 0;
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.fr-by {
+  margin-top: 6px;
+  font-size: 10.5px;
+  color: var(--sub);
+}
+.fr-status {
+  flex: 0 0 auto;
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 0.02em;
+}
+.fr-status-new {
+  background: #8496a0;
+}
+.fr-status-reviewing {
+  background: #3ba7e0;
+}
+.fr-status-planned {
+  background: var(--nushi);
+  color: #3a2b0a;
+}
+.fr-status-done {
+  background: var(--adult);
+}
+.fr-vote {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  min-width: 48px;
+  padding: 8px 6px;
+  border-radius: 12px;
+  background: #fff;
+  border: 1px solid var(--card-line);
+  color: var(--sub);
+  font-family: inherit;
+  cursor: pointer;
+}
+.fr-vote .fr-vote-icon {
+  font-size: 15px;
+  line-height: 1;
+}
+.fr-vote .fr-vote-count {
+  font-size: 12px;
+  font-weight: 700;
+}
+.fr-vote.voted {
+  background: linear-gradient(100deg, var(--coral), #ff9478);
+  border-color: transparent;
+  color: #fff;
+}
+.fr-vote:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.fr-fab {
+  z-index: 55;
+}
+.fr-admin-item {
+  cursor: default;
+}
+.fr-admin-item:hover {
+  background: transparent;
+}
+.fr-admin-select {
+  width: auto;
+  flex: 0 0 auto;
+  padding: 6px 8px;
+  font-size: 12px;
+}

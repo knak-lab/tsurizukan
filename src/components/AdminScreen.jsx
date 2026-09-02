@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { useFishMaster } from "../context/FishMasterContext"
 import {
   createFish,
@@ -8,6 +8,12 @@ import {
   uploadFishImage,
   deleteFishImage,
 } from "../services/storage"
+import {
+  listFeatureRequests,
+  updateFeatureRequestStatus,
+  FR_STATUS,
+  FR_STATUS_ORDER,
+} from "../services/featureRequests"
 import { resizeImage } from "../utils/resizeImage"
 
 const ENV_OPTIONS = [
@@ -80,6 +86,7 @@ function toDraft(fish) {
 
 export default function AdminScreen({ onClose, onChanged }) {
   const { fishMaster } = useFishMaster()
+  const [tab, setTab] = useState("fish") // "fish" | "requests"
   const [query, setQuery] = useState("")
   const [editing, setEditing] = useState(null) // { mode: "new" | "edit", fish?, draft }
 
@@ -107,8 +114,35 @@ export default function AdminScreen({ onClose, onChanged }) {
             <span className="close-icon">✕</span>
           </button>
           <div className="eyebrow">ADMIN</div>
-          <h2>{editing ? (editing.mode === "new" ? "魚種を追加" : "魚種を編集") : "魚種の管理"}</h2>
+          <h2>
+            {editing
+              ? editing.mode === "new"
+                ? "魚種を追加"
+                : "魚種を編集"
+              : tab === "fish"
+                ? "魚種の管理"
+                : "要望の管理"}
+          </h2>
         </div>
+
+        {!editing && (
+          <div className="auth-toggle admin-tabs">
+            <button
+              type="button"
+              className={tab === "fish" ? "active" : ""}
+              onClick={() => setTab("fish")}
+            >
+              魚種の管理
+            </button>
+            <button
+              type="button"
+              className={tab === "requests" ? "active" : ""}
+              onClick={() => setTab("requests")}
+            >
+              要望管理
+            </button>
+          </div>
+        )}
 
         {editing ? (
           <AdminFishForm
@@ -123,6 +157,8 @@ export default function AdminScreen({ onClose, onChanged }) {
             }}
             onCancel={() => setEditing(null)}
           />
+        ) : tab === "requests" ? (
+          <FeatureRequestAdmin />
         ) : (
           <div className="admin-list-wrap">
             <div className="admin-list-toolbar">
@@ -377,5 +413,72 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         </button>
       </div>
     </form>
+  )
+}
+
+/** 要望管理: 各要望の status をプルダウンで変更するだけのシンプルな一覧 */
+function FeatureRequestAdmin() {
+  const [list, setList] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
+
+  async function load() {
+    setLoading(true)
+    setError(null)
+    try {
+      setList(await listFeatureRequests("new"))
+    } catch (err) {
+      setError(err.message || "読み込みに失敗しました")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    load()
+  }, [])
+
+  async function changeStatus(id, status) {
+    const prev = list
+    setList((cur) => cur.map((r) => (r.id === id ? { ...r, status } : r)))
+    try {
+      await updateFeatureRequestStatus(id, status)
+    } catch (err) {
+      setError(err.message || "更新に失敗しました")
+      setList(prev)
+    }
+  }
+
+  if (loading) return <div className="empty-state">読み込み中...</div>
+  if (error) return <div className="empty-state">{error}</div>
+  if (list.length === 0) return <div className="empty-state">まだ要望がありません。</div>
+
+  return (
+    <div className="admin-list-wrap">
+      <div className="result-count">{list.length}件</div>
+      <ul className="admin-list">
+        {list.map((r) => (
+          <li key={r.id} className="admin-list-item fr-admin-item">
+            <div className="admin-list-meta">
+              <span className="admin-list-name">{r.title}</span>
+              <span className="admin-list-sub">
+                ♥{r.voteCount}・{r.authorNickname}
+              </span>
+            </div>
+            <select
+              className="form-input fr-admin-select"
+              value={r.status}
+              onChange={(e) => changeStatus(r.id, e.target.value)}
+            >
+              {FR_STATUS_ORDER.map((s) => (
+                <option key={s} value={s}>
+                  {FR_STATUS[s].label}
+                </option>
+              ))}
+            </select>
+          </li>
+        ))}
+      </ul>
+    </div>
   )
 }

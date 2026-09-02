@@ -15,6 +15,7 @@ import AuthScreen from "./components/AuthScreen"
 import NicknameSetupPrompt from "./components/NicknameSetupPrompt"
 import UserSwitcher from "./components/UserSwitcher"
 import AdminScreen from "./components/AdminScreen"
+import FeatureRequestScreen from "./components/FeatureRequestScreen"
 
 function App() {
   const { user, profile, loading: authLoading, signOut } = useAuth()
@@ -34,6 +35,7 @@ function App() {
   const [importBanner, setImportBanner] = useState(false)
   const [importing, setImporting] = useState(false)
   const [showAdmin, setShowAdmin] = useState(false)
+  const [showRequests, setShowRequests] = useState(false)
 
   const targetUserId = viewedUserId ?? user?.id
   const isOwnCollection = !viewedUserId || viewedUserId === user?.id
@@ -146,6 +148,9 @@ function App() {
         <CollectionRank records={records} fishMaster={fishMaster} />
         <UserSwitcher currentUserId={user.id} viewedUserId={viewedUserId} onSelect={setViewedUserId} />
         <div className="header-actions">
+          <button type="button" className="auth-link" style={{ color: "#7fb8c9" }} onClick={() => setShowRequests(true)}>
+            要望
+          </button>
           {profile?.is_admin && (
             <button type="button" className="auth-link" style={{ color: "#7fb8c9" }} onClick={() => setShowAdmin(true)}>
               管理
@@ -283,6 +288,8 @@ function App() {
           onChanged={reloadFish}
         />
       )}
+
+      {showRequests && <FeatureRequestScreen onClose={() => setShowRequests(false)} />}
 
       {captureFish && <CaptureEffect fish={captureFish} onClose={() => setCaptureFish(null)} />}
 
