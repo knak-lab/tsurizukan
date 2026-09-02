@@ -16,6 +16,7 @@ import NicknameSetupPrompt from "./components/NicknameSetupPrompt"
 import UserSwitcher from "./components/UserSwitcher"
 import AdminScreen from "./components/AdminScreen"
 import FeatureRequestScreen from "./components/FeatureRequestScreen"
+import LoadingScreen from "./components/LoadingScreen"
 
 function App() {
   const { user, profile, loading: authLoading, signOut } = useAuth()
@@ -99,7 +100,7 @@ function App() {
   }
 
   if (authLoading) {
-    return <div className="empty-state">読み込み中...</div>
+    return <LoadingScreen />
   }
 
   if (!user) {
@@ -107,7 +108,7 @@ function App() {
   }
 
   if (fishLoading) {
-    return <div className="empty-state">図鑑を読み込み中...</div>
+    return <LoadingScreen />
   }
 
   if (fishError) {
