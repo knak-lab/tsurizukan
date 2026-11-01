@@ -1,0 +1,53 @@
+# Supabase 無料プランの「7日間アクティビティなしで自動停止」を回避するための定期アクセス。
+# 3日おきに fish テーブルへ軽いSELECTを投げる（RLSで0件が返ってもDBクエリは実行されるのでOK）。
+#
+# 必要な Repository secrets（Settings → Secrets and variables → Actions）:
+#   SUPABASE_URL       … https://xxxx.supabase.co
+#   SUPABASE_ANON_KEY  … anon public key（.env の VITE_SUPABASE_ANON_KEY と同じもの）
+#
+# 失敗時（＝プロジェクトが停止している等）は GitHub からメール通知が届くので、
+# それが「停止したよ」アラートの代わりになる。
+
+name: Supabase keepalive
+
+on:
+  schedule:
+    - cron: "17 0 */3 * *" # 3日おき 09:17 JST
+  workflow_dispatch: # Actions 画面から手動実行も可能
+
+permissions:
+  actions: write # 下の「ワークフロー再有効化」に必要
+  contents: read
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase database
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::error::SUPABASE_URL / SUPABASE_ANON_KEY が secrets に設定されていません"
+            exit 1
+          fi
+          status=$(curl -sS -o body.txt -w "%{http_code}" --retry 3 --retry-delay 10 \
+            "$SUPABASE_URL/rest/v1/fish?select=id&limit=1" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY")
+          echo "HTTP $status"
+          cat body.txt; echo
+          if [ "$status" != "200" ]; then
+            echo "::error::Supabase から $status が返りました。プロジェクトが停止していないかダッシュボードを確認してください"
+            exit 1
+          fi
+
+      # 公開リポジトリは60日間コミットがないと定期実行が自動で無効化されるため、
+      # 実行のたびに自分自身を有効化し直してタイマーをリセットする。
+      - name: Keep this workflow enabled
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api -X PUT "repos/${{ github.repository }}/actions/workflows/supabase-keepalive.yml/enable" || true
