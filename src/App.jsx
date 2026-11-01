@@ -12,6 +12,7 @@ import CollectionRank from "./components/CollectionRank"
 import CaptureEffect from "./components/CaptureEffect"
 import BestUpdateToast from "./components/BestUpdateToast"
 import AuthScreen from "./components/AuthScreen"
+import PasswordResetScreen from "./components/PasswordResetScreen"
 import NicknameSetupPrompt from "./components/NicknameSetupPrompt"
 import UserSwitcher from "./components/UserSwitcher"
 import AdminScreen from "./components/AdminScreen"
@@ -19,7 +20,7 @@ import FeatureRequestScreen from "./components/FeatureRequestScreen"
 import LoadingScreen from "./components/LoadingScreen"
 
 function App() {
-  const { user, profile, loading: authLoading, signOut } = useAuth()
+  const { user, profile, loading: authLoading, signOut, passwordRecovery } = useAuth()
   const { fishMaster, loading: fishLoading, error: fishError, reload: reloadFish } = useFishMaster()
 
   const [activeEnv, setActiveEnv] = useState("all")
@@ -101,6 +102,10 @@ function App() {
 
   if (authLoading) {
     return <LoadingScreen />
+  }
+
+  if (passwordRecovery && user) {
+    return <PasswordResetScreen />
   }
 
   if (!user) {
