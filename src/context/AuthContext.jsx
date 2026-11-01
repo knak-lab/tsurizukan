@@ -8,6 +8,8 @@ export function AuthProvider({ children }) {
   const [session, setSession] = useState(null)
   const [profile, setProfile] = useState(null)
   const [loading, setLoading] = useState(true)
+  // リセットメールのリンクから戻ってきたとき true（新しいパスワード設定画面を出す）
+  const [passwordRecovery, setPasswordRecovery] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -17,7 +19,8 @@ export function AuthProvider({ children }) {
 
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === "PASSWORD_RECOVERY") setPasswordRecovery(true)
       setSession(session)
     })
 
@@ -58,8 +61,20 @@ export function AuthProvider({ children }) {
   }
 
   async function resetPassword(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email)
+    // 戻り先を明示しないと Supabase の Site URL 依存になり、パスが落ちることがあるため指定する
+    const redirectTo = window.location.origin + import.meta.env.BASE_URL
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo })
     if (error) throw error
+  }
+
+  async function updatePassword(newPassword) {
+    const { error } = await supabase.auth.updateUser({ password: newPassword })
+    if (error) throw error
+    setPasswordRecovery(false)
+  }
+
+  function cancelPasswordRecovery() {
+    setPasswordRecovery(false)
   }
 
   async function updateNickname(nickname) {
@@ -76,6 +91,9 @@ export function AuthProvider({ children }) {
     signIn,
     signOut,
     resetPassword,
+    passwordRecovery,
+    updatePassword,
+    cancelPasswordRecovery,
     updateNickname,
   }
 
