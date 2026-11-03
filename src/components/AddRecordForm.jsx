@@ -3,6 +3,7 @@ import { classifyBySize } from "../utils/classify"
 import { getRecords, saveRecord, updateRecord } from "../services/storage"
 import { useAuth } from "../context/AuthContext"
 import { useFishMaster } from "../context/FishMasterContext"
+import NewFishForm from "./NewFishForm"
 
 function todayStr() {
   const d = new Date()
@@ -17,7 +18,7 @@ function todayStr() {
  */
 export default function AddRecordForm({ fish: fixedFish, record, onClose, onSaved }) {
   const { user } = useAuth()
-  const { fishMaster } = useFishMaster()
+  const { fishMaster, reload: reloadFish } = useFishMaster()
   const isEdit = Boolean(record)
   const [query, setQuery] = useState(fixedFish ? fixedFish.name : "")
   const [selectedId, setSelectedId] = useState(fixedFish ? fixedFish.id : "")
@@ -25,8 +26,22 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
   const [date, setDate] = useState(record ? record.date : todayStr())
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  const [showNewFish, setShowNewFish] = useState(false)
+  // 登録直後は図鑑の再読込が終わるまで fishMaster に居ないので、ここで保持しておく
+  const [addedFish, setAddedFish] = useState(null)
 
-  const selectedFish = fixedFish || fishMaster.find((f) => f.id === selectedId) || null
+  const selectedFish =
+    fixedFish ||
+    fishMaster.find((f) => f.id === selectedId) ||
+    (addedFish && addedFish.id === selectedId ? addedFish : null)
+
+  function handleFishAdded(fish) {
+    setShowNewFish(false)
+    setAddedFish(fish)
+    setSelectedId(fish.id)
+    setQuery(fish.name)
+    reloadFish()
+  }
 
   const filtered = useMemo(() => {
     if (!query) return fishMaster
@@ -112,7 +127,12 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
                 {query && !selectedFish && (
                   <div className="fish-suggest">
                     {filtered.length === 0 ? (
-                      <div className="fish-suggest-empty">該当する魚が見つかりません</div>
+                      <div className="fish-suggest-empty">
+                        該当する魚が見つかりません
+                        <button type="button" className="fish-suggest-add" onClick={() => setShowNewFish(true)}>
+                          ＋「{query.trim()}」を図鑑に登録する
+                        </button>
+                      </div>
                     ) : (
                       filtered.slice(0, 30).map((f) => (
                         <div key={f.id} className="fish-suggest-item" onClick={() => handlePick(f)}>
@@ -121,6 +141,14 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
                       ))
                     )}
                   </div>
+                )}
+                {!isEdit && (
+                  <button type="button" className="auth-link form-inline-link" onClick={() => setShowNewFish(true)}>
+                    図鑑にない魚を登録する
+                  </button>
+                )}
+                {selectedFish?.needsReview && (
+                  <span className="form-note">この魚は登録したばかりです。イラストは準備中です。</span>
                 )}
               </>
             )}
@@ -151,6 +179,15 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
           </button>
         </form>
       </div>
+
+      {showNewFish && (
+        <NewFishForm
+          initialName={query.trim()}
+          fishMaster={fishMaster}
+          onClose={() => setShowNewFish(false)}
+          onSaved={handleFishAdded}
+        />
+      )}
     </div>
   )
 }

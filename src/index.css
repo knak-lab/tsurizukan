@@ -1366,3 +1366,80 @@ header.app .wave {
     animation-duration: 3.2s;
   }
 }
+
+/* ============================================================
+   ユーザーによる魚種登録
+   ============================================================ */
+.form-note {
+  display: block;
+  margin: 4px 0 0;
+  font-size: 11.5px;
+  line-height: 1.6;
+  color: var(--sub);
+}
+.form-note.warn {
+  color: #c0533f;
+}
+.form-inline-link {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 0;
+  font-size: 12px;
+  color: var(--teal);
+}
+.fish-suggest-add {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px dashed var(--teal);
+  border-radius: 10px;
+  background: rgba(28, 140, 140, 0.06);
+  color: var(--teal);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.needs-review-badge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #f2a541;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  vertical-align: middle;
+}
+.admin-list-filter {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.admin-list-filter label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+.admin-review-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: rgba(242, 165, 65, 0.12);
+  font-size: 12.5px;
+  color: var(--ink);
+}
+.admin-review-box label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 700;
+  cursor: pointer;
+}

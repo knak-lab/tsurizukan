@@ -81,6 +81,8 @@ function toDraft(fish) {
     seriesId: fish.seriesId || "",
     seriesStage: fish.seriesStage == null ? "" : String(fish.seriesStage),
     sortOrder: fish.sortOrder ?? 0,
+    // ユーザー登録の魚種は、管理者が保存した時点で整備完了扱いにするのを既定にする
+    reviewed: fish.needsReview ? true : null,
   }
 }
 
@@ -89,15 +91,19 @@ export default function AdminScreen({ onClose, onChanged }) {
   const [tab, setTab] = useState("fish") // "fish" | "requests"
   const [query, setQuery] = useState("")
   const [editing, setEditing] = useState(null) // { mode: "new" | "edit", fish?, draft }
+  const pendingCount = fishMaster.filter((f) => f.needsReview).length
+  const [onlyPending, setOnlyPending] = useState(pendingCount > 0)
 
   const list = useMemo(() => {
     const q = query.trim().toLowerCase()
-    const sorted = [...fishMaster].sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
+    const sorted = [...fishMaster]
+      .filter((f) => !onlyPending || f.needsReview)
+      .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
     if (!q) return sorted
     return sorted.filter(
       (f) => f.name.toLowerCase().includes(q) || f.en.toLowerCase().includes(q) || f.id.includes(q),
     )
-  }, [fishMaster, query])
+  }, [fishMaster, query, onlyPending])
 
   function startNew() {
     setEditing({ mode: "new", draft: blankDraft(fishMaster) })
@@ -174,13 +180,22 @@ export default function AdminScreen({ onClose, onChanged }) {
                 ＋ 新しい魚種
               </button>
             </div>
-            <div className="result-count">{list.length}種</div>
+            <div className="admin-list-filter">
+              <label>
+                <input type="checkbox" checked={onlyPending} onChange={(e) => setOnlyPending(e.target.checked)} />
+                要整備のみ表示（{pendingCount}件）
+              </label>
+              <span className="result-count">{list.length}種</span>
+            </div>
             <ul className="admin-list">
               {list.map((f) => (
                 <li key={f.id} className="admin-list-item" onClick={() => startEdit(f)}>
                   <img className="admin-list-thumb" src={f.illustration} alt="" loading="lazy" />
                   <div className="admin-list-meta">
-                    <span className="admin-list-name">{f.name}</span>
+                    <span className="admin-list-name">
+                      {f.name}
+                      {f.needsReview && <span className="needs-review-badge">要整備</span>}
+                    </span>
                     <span className="admin-list-sub">
                       {f.id}・{f.en}・{f.sizeMin}〜{f.sizeMax}cm
                     </span>
@@ -257,6 +272,7 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         sortOrder: Number(d.sortOrder) || 0,
         imagePath,
       }
+      if (d.reviewed != null) payload.needsReview = !d.reviewed
 
       if (mode === "new") {
         await createFish({ id: d.id.trim(), ...payload })
@@ -371,6 +387,23 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
           <input type="number" className="form-input" value={d.seriesStage} onChange={set("seriesStage")} />
         </label>
       </div>
+
+      {fish?.needsReview && (
+        <div className="admin-review-box">
+          <div>
+            ユーザー登録の魚種です（{fish.id}）。
+            {fish.tokuchou && <> 登録時メモ: {fish.tokuchou}</>}
+          </div>
+          <label>
+            <input
+              type="checkbox"
+              checked={d.reviewed}
+              onChange={(e) => setD((prev) => ({ ...prev, reviewed: e.target.checked }))}
+            />
+            保存時に「整備完了」にする（要整備リストから外す）
+          </label>
+        </div>
+      )}
 
       <label className="form-field">
         <span className="form-label">画像</span>

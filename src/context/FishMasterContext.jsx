@@ -10,13 +10,17 @@ export function FishMasterProvider({ children }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
 
-  const load = useCallback(async () => {
-    setLoading(true)
-    setError(null)
+  // silent=true のときは全画面ローディングに切り替えない（開いているフォーム等をアンマウントさせないため）
+  const load = useCallback(async ({ silent = false } = {}) => {
+    if (!silent) {
+      setLoading(true)
+      setError(null)
+    }
     try {
       setFishMaster(await getFishMaster())
     } catch (err) {
-      setError(err)
+      // 再読み込みの失敗では既存の一覧を残す（全画面エラーにしない）
+      if (!silent) setError(err)
     } finally {
       setLoading(false)
     }
@@ -32,7 +36,9 @@ export function FishMasterProvider({ children }) {
     load()
   }, [user, load])
 
-  const value = { fishMaster, loading, error, reload: load }
+  const reload = useCallback(() => load({ silent: true }), [load])
+
+  const value = { fishMaster, loading, error, reload }
 
   return <FishMasterContext.Provider value={value}>{children}</FishMasterContext.Provider>
 }
