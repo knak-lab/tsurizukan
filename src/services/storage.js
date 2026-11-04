@@ -111,8 +111,8 @@ function fromDbFish(row) {
     tax: row.tax,
     env: row.env,
     rarity: row.rarity,
-    sizeMin: Number(row.size_min),
-    sizeMax: Number(row.size_max),
+    sizeMin: row.size_min == null ? null : Number(row.size_min),
+    sizeMax: row.size_max == null ? null : Number(row.size_max),
     imagePath: row.image_path,
     illustration: row.image_path
       ? supabase.storage.from(FISH_IMAGE_BUCKET).getPublicUrl(row.image_path).data.publicUrl
@@ -184,8 +184,8 @@ export async function submitFish({ name, en, env, tax, sizeMin, sizeMax, memo })
       env,
       tax,
       rarity: 2,
-      size_min: sizeMin,
-      size_max: sizeMax,
+      size_min: sizeMin ?? null,
+      size_max: sizeMax ?? null,
       tokuchou: memo?.trim() || null,
       created_by: user.id,
     })

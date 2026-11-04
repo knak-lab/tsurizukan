@@ -34,9 +34,12 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
     if (!trimmed) return "魚の名前を入力してください"
     if (trimmed.length > 30) return "魚の名前は30文字以内にしてください"
     if (duplicate) return `「${trimmed}」はすでに図鑑にあります`
+    // サイズはわからなければ空欄でOK（両方空なら「サイズ調査中」として登録）
+    if (sizeMin === "" && sizeMax === "") return null
+    if (sizeMin === "" || sizeMax === "") return "サイズは下限・上限の両方を入れるか、両方空欄にしてください"
     const min = Number(sizeMin)
     const max = Number(sizeMax)
-    if (!(min > 0)) return "よく釣れるサイズの下限を入力してください"
+    if (!(min > 0)) return "サイズの下限は0より大きい数値にしてください"
     if (!(max > min)) return "サイズの上限は下限より大きくしてください"
     return null
   }
@@ -57,8 +60,8 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
         en,
         env,
         tax,
-        sizeMin: Number(sizeMin),
-        sizeMax: Number(sizeMax),
+        sizeMin: sizeMin === "" ? null : Number(sizeMin),
+        sizeMax: sizeMax === "" ? null : Number(sizeMax),
         memo,
       })
       onSaved(fish)
@@ -124,7 +127,7 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
               </select>
             </label>
             <label className="form-field">
-              <span className="form-label">よく釣れるサイズ 下限 (cm)</span>
+              <span className="form-label">よく釣れるサイズ 下限 (cm・任意)</span>
               <input
                 type="number"
                 step="0.1"
@@ -135,7 +138,7 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
               />
             </label>
             <label className="form-field">
-              <span className="form-label">上限 (cm)</span>
+              <span className="form-label">上限 (cm・任意)</span>
               <input
                 type="number"
                 step="0.1"
@@ -146,6 +149,8 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
               />
             </label>
           </div>
+
+          <span className="form-note">サイズがわからなければ空欄のままで大丈夫です。あとで管理人が設定します。</span>
 
           <label className="form-field">
             <span className="form-label">メモ（任意・特徴や釣れた場所など）</span>

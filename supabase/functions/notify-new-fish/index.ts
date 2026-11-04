@@ -66,7 +66,7 @@ Deno.serve(async (req) => {
     ["英名", fish.en || "（未入力）"],
     ["生息環境", ENV_LABEL[fish.env] ?? fish.env],
     ["分類", TAX_LABEL[fish.tax] ?? fish.tax],
-    ["サイズ帯", `${fish.size_min}〜${fish.size_max} cm`],
+    ["サイズ帯", fish.size_min == null ? "（未入力・要設定）" : `${fish.size_min}〜${fish.size_max} cm`],
     ["メモ", fish.tokuchou || "（なし）"],
     ["登録者", nickname],
     ["登録日時", fish.created_at],

@@ -1,4 +1,4 @@
-import { classInfo, classifyBySize } from "../utils/classify"
+import { classInfo, classifyBySize, formatSizeRange } from "../utils/classify"
 import { isCaught, bestRecordFor } from "../utils/isCaught"
 import { getRarityTier, getRarityTierClass } from "../utils/rarityTier"
 
@@ -34,7 +34,7 @@ export default function FishCard({ fish, records, onClick }) {
       </div>
       <div className="fish-meta">
         <div className="size-range">
-          {fish.sizeMin}〜{fish.sizeMax}cm
+          {formatSizeRange(fish.sizeMin, fish.sizeMax)}
         </div>
       </div>
     </div>

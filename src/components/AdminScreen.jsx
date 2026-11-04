@@ -15,6 +15,7 @@ import {
   FR_STATUS_ORDER,
 } from "../services/featureRequests"
 import { resizeImage } from "../utils/resizeImage"
+import { formatSizeRange } from "../utils/classify"
 
 const ENV_OPTIONS = [
   { value: "salt", label: "海水" },
@@ -72,8 +73,8 @@ function toDraft(fish) {
     env: fish.env,
     tax: fish.tax,
     rarity: fish.rarity,
-    sizeMin: String(fish.sizeMin),
-    sizeMax: String(fish.sizeMax),
+    sizeMin: fish.sizeMin == null ? "" : String(fish.sizeMin),
+    sizeMax: fish.sizeMax == null ? "" : String(fish.sizeMax),
     tokuchou: fish.tokuchou || "",
     miwake: fish.miwake || "",
     standard: fish.standard || "",
@@ -197,7 +198,7 @@ export default function AdminScreen({ onClose, onChanged }) {
                       {f.needsReview && <span className="needs-review-badge">要整備</span>}
                     </span>
                     <span className="admin-list-sub">
-                      {f.id}・{f.en}・{f.sizeMin}〜{f.sizeMax}cm
+                      {f.id}・{f.en}・{formatSizeRange(f.sizeMin, f.sizeMax)}
                     </span>
                   </div>
                 </li>
@@ -230,9 +231,11 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
     if (mode === "new" && fishMaster.some((f) => f.id === d.id.trim())) return "そのIDは既に使われています"
     if (!d.name.trim()) return "和名を入力してください"
     if (!d.en.trim()) return "英名を入力してください"
+    // サイズ帯は「両方空（調査中）」も可
+    if (d.sizeMin === "" && d.sizeMax === "") return null
     const min = Number(d.sizeMin)
     const max = Number(d.sizeMax)
-    if (!(min > 0)) return "サイズ下限は0より大きい数値にしてください"
+    if (!(min > 0)) return "サイズ下限は0より大きい数値にしてください（不明なら上限・下限とも空欄）"
     if (!(max > min)) return "サイズ上限は下限より大きくしてください"
     return null
   }
@@ -261,8 +264,8 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         env: d.env,
         tax: d.tax,
         rarity: Number(d.rarity),
-        sizeMin: Number(d.sizeMin),
-        sizeMax: Number(d.sizeMax),
+        sizeMin: d.sizeMin === "" ? null : Number(d.sizeMin),
+        sizeMax: d.sizeMax === "" ? null : Number(d.sizeMax),
         tokuchou: d.tokuchou.trim(),
         miwake: d.miwake.trim(),
         standard: d.standard.trim(),

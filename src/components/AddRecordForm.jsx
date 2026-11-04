@@ -66,7 +66,8 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
     if (!canSave) return
     setError(null)
     setSubmitting(true)
-    const sizeClass = classifyBySize(Number(size), selectedFish.sizeMin, selectedFish.sizeMax)
+    // サイズ帯が未設定の魚種は仮に "adult" で保存する（表示時は都度判定し直すので、整備後に正しいクラスになる）
+    const sizeClass = classifyBySize(Number(size), selectedFish.sizeMin, selectedFish.sizeMax) ?? "adult"
 
     try {
       if (isEdit) {
@@ -163,7 +164,9 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
               step="0.1"
               value={size}
               onChange={(e) => setSize(e.target.value)}
-              placeholder={selectedFish ? `${selectedFish.sizeMin}〜${selectedFish.sizeMax}` : ""}
+              placeholder={
+                selectedFish?.sizeMin != null ? `${selectedFish.sizeMin}〜${selectedFish.sizeMax}` : ""
+              }
             />
           </label>
 
