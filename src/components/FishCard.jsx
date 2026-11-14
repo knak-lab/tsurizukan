@@ -1,5 +1,5 @@
 import { classInfo, classifyBySize } from "../utils/classify"
-import { isCaught, bestRecordFor } from "../utils/isCaught"
+import { isCaught, bestRecordFor, totalCountFor } from "../utils/isCaught"
 import { getRarityTier, getRarityTierClass } from "../utils/rarityTier"
 
 export default function FishCard({ fish, records, onClick }) {
@@ -36,6 +36,7 @@ export default function FishCard({ fish, records, onClick }) {
         <div className="size-range">
           {fish.sizeMin}〜{fish.sizeMax}cm
         </div>
+        {caught && <div className="catch-total">{totalCountFor(fish.id, records)}匹</div>}
       </div>
     </div>
   )
