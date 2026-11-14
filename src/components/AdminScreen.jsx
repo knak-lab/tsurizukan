@@ -490,16 +490,14 @@ function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
       // 件数が取れなくても確認は続行する
     }
     const countText = refCount == null ? "この魚の釣果記録" : `この魚の釣果記録 ${refCount} 件`
-    const msg =
-      `「${fish.name}」(${fish.id}) を「${target.name}」(${target.id}) に統合します。
-
-` +
-      `・${countText}は、全ユーザー分「${target.name}」に付け替わります
-` +
-      `・「${fish.name}」は図鑑から削除されます
-
-` +
-      `元に戻せません。続けますか？`
+    const msg = [
+      `「${fish.name}」(${fish.id}) を「${target.name}」(${target.id}) に統合します。`,
+      "",
+      `・${countText}は、全ユーザー分「${target.name}」に付け替わります`,
+      `・「${fish.name}」は図鑑から削除されます`,
+      "",
+      "元に戻せません。続けますか？",
+    ].join("\n")
     if (!window.confirm(msg)) return
 
     setBusy(true)
