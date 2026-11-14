@@ -17,6 +17,7 @@ import {
 } from "../services/featureRequests"
 import { resizeImage } from "../utils/resizeImage"
 import { formatSizeRange } from "../utils/classify"
+import { searchFish, findByExactName, parseAliases } from "../utils/fishSearch"
 
 const ENV_OPTIONS = [
   { value: "salt", label: "海水" },
@@ -40,6 +41,11 @@ function imageFilename(id) {
   return `${safe || `fish-${Date.now()}`}.png`
 }
 
+/** 下書きの別名欄を配列にする（自分の和名と同じものは除く） */
+function aliasesOf(d) {
+  return parseAliases(d.aliasesText).filter((a) => a !== d.name.trim())
+}
+
 function suggestNextId(fishMaster) {
   const nums = fishMaster.map((f) => parseInt(f.id, 10)).filter((n) => !Number.isNaN(n))
   const next = (nums.length ? Math.max(...nums) : 0) + 1
@@ -56,6 +62,7 @@ function blankDraft(fishMaster) {
     rarity: 1,
     sizeMin: "",
     sizeMax: "",
+    aliasesText: "",
     tokuchou: "",
     miwake: "",
     standard: "",
@@ -76,6 +83,7 @@ function toDraft(fish) {
     rarity: fish.rarity,
     sizeMin: fish.sizeMin == null ? "" : String(fish.sizeMin),
     sizeMax: fish.sizeMax == null ? "" : String(fish.sizeMax),
+    aliasesText: (fish.aliases || []).join("、"),
     tokuchou: fish.tokuchou || "",
     miwake: fish.miwake || "",
     standard: fish.standard || "",
@@ -97,14 +105,11 @@ export default function AdminScreen({ onClose, onChanged }) {
   const [onlyPending, setOnlyPending] = useState(pendingCount > 0)
 
   const list = useMemo(() => {
-    const q = query.trim().toLowerCase()
     const sorted = [...fishMaster]
       .filter((f) => !onlyPending || f.needsReview)
       .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0))
-    if (!q) return sorted
-    return sorted.filter(
-      (f) => f.name.toLowerCase().includes(q) || f.en.toLowerCase().includes(q) || f.id.includes(q),
-    )
+    if (!query.trim()) return sorted
+    return searchFish(sorted, query, { includeId: true }).map((m) => m.fish)
   }, [fishMaster, query, onlyPending])
 
   function startNew() {
@@ -241,9 +246,23 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
     return null
   }
 
+  /** 別名の検証: 他の魚の和名・別名とぶつかっていないか */
+  function validateAliases() {
+    const others = fishMaster.filter((f) => f.id !== fish?.id)
+    for (const a of aliasesOf(d)) {
+      const hit = findByExactName(others, a)
+      if (hit) {
+        return hit.viaAlias
+          ? `別名「${a}」は「${hit.fish.name}」の別名として登録済みです`
+          : `別名「${a}」は別の魚種「${hit.fish.name}」の名前です（重複なら統合を使ってください）`
+      }
+    }
+    return null
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
-    const v = validate()
+    const v = validate() || validateAliases()
     if (v) {
       setError(v)
       return
@@ -267,6 +286,7 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         rarity: Number(d.rarity),
         sizeMin: d.sizeMin === "" ? null : Number(d.sizeMin),
         sizeMax: d.sizeMax === "" ? null : Number(d.sizeMax),
+        aliases: aliasesOf(d),
         tokuchou: d.tokuchou.trim(),
         miwake: d.miwake.trim(),
         standard: d.standard.trim(),
@@ -392,6 +412,17 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         </label>
       </div>
 
+      <label className="form-field">
+        <span className="form-label">別名・地方名（任意。「、」区切り）</span>
+        <input
+          className="form-input"
+          value={d.aliasesText}
+          onChange={set("aliasesText")}
+          placeholder="例: ママカリ、ハラカリ"
+          autoComplete="off"
+        />
+      </label>
+
       {fish?.needsReview && (
         <div className="admin-review-box">
           <div>
@@ -472,12 +503,12 @@ function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
   const target = fishMaster.find((f) => f.id === targetId) || null
 
   const candidates = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    if (!q) return []
-    return fishMaster
-      .filter((f) => f.id !== fish.id)
-      .filter((f) => f.name.toLowerCase().includes(q) || f.en.toLowerCase().includes(q) || f.id.includes(q))
-      .slice(0, 20)
+    if (!query.trim()) return []
+    return searchFish(
+      fishMaster.filter((f) => f.id !== fish.id),
+      query,
+      { includeId: true },
+    ).slice(0, 20)
   }, [query, fishMaster, fish.id])
 
   async function handleMerge() {
@@ -494,7 +525,7 @@ function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
       `「${fish.name}」(${fish.id}) を「${target.name}」(${target.id}) に統合します。`,
       "",
       `・${countText}は、全ユーザー分「${target.name}」に付け替わります`,
-      `・「${fish.name}」は図鑑から削除されます`,
+      `・「${fish.name}」は図鑑から削除され、「${target.name}」の別名になります`,
       "",
       "元に戻せません。続けますか？",
     ].join("\n")
@@ -532,6 +563,7 @@ function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
       <div className="admin-merge-title">既存の魚種に統合する</div>
       <div className="admin-merge-help">
         「{fish.name}」の釣果記録を全ユーザー分、統合先の魚種に移してから「{fish.name}」を削除します。
+        「{fish.name}」という名前は統合先の別名として残るので、以後この名前で検索しても統合先が出ます。
       </div>
       <div className="form-field">
         <input
@@ -552,9 +584,11 @@ function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
             {candidates.length === 0 ? (
               <div className="fish-suggest-empty">該当する魚が見つかりません</div>
             ) : (
-              candidates.map((f) => (
+              candidates.map(({ fish: f, alias }) => (
                 <div key={f.id} className="fish-suggest-item" onClick={() => setTargetId(f.id)}>
-                  {f.name} <span className="en">({f.id}{f.en ? `・${f.en}` : ""})</span>
+                  {f.name}
+                  {alias && <span className="fish-suggest-alias">別名: {alias}</span>}
+                  <span className="en">({f.id}{f.en ? `・${f.en}` : ""})</span>
                   {f.needsReview && <span className="needs-review-badge">要整備</span>}
                 </div>
               ))

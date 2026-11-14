@@ -135,6 +135,7 @@ function fromDbFish(row) {
       : FISH_PLACEHOLDER,
     needsReview: Boolean(row.needs_review),
     createdBy: row.created_by ?? null,
+    aliases: row.aliases ?? [],
     tokuchou: row.tokuchou ?? "",
     miwake: row.miwake ?? "",
     standard: row.standard ?? "",
@@ -157,6 +158,7 @@ function toDbFish(patch) {
   if ("sizeMin" in patch) out.size_min = patch.sizeMin
   if ("sizeMax" in patch) out.size_max = patch.sizeMax
   if ("imagePath" in patch) out.image_path = patch.imagePath
+  if ("aliases" in patch) out.aliases = patch.aliases ?? []
   if ("tokuchou" in patch) out.tokuchou = patch.tokuchou || null
   if ("miwake" in patch) out.miwake = patch.miwake || null
   if ("standard" in patch) out.standard = patch.standard || null
