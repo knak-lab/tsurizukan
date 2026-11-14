@@ -3,6 +3,7 @@ import { classifyBySize } from "../utils/classify"
 import { getRecords, saveRecords, updateRecord } from "../services/storage"
 import { useAuth } from "../context/AuthContext"
 import { useFishMaster } from "../context/FishMasterContext"
+import NewFishForm from "./NewFishForm"
 
 function todayStr() {
   const d = new Date()
@@ -28,8 +29,8 @@ function isRowValid(row) {
 }
 
 /** 魚種1つ分の入力行（魚種・最大サイズ・匹数） */
-function CatchRow({ row, index, showIndex, removable, fishMaster, onChange, onRemove }) {
-  const selectedFish = fishMaster.find((f) => f.id === row.fishId) || null
+function CatchRow({ row, index, showIndex, removable, canAddFish, fishMaster, findFish, onChange, onRemove, onRequestNewFish }) {
+  const selectedFish = findFish(row.fishId)
 
   const filtered = useMemo(() => {
     if (!row.query) return fishMaster
@@ -69,7 +70,12 @@ function CatchRow({ row, index, showIndex, removable, fishMaster, onChange, onRe
             {row.query && !selectedFish && (
               <div className="fish-suggest">
                 {filtered.length === 0 ? (
-                  <div className="fish-suggest-empty">該当する魚が見つかりません</div>
+                  <div className="fish-suggest-empty">
+                    該当する魚が見つかりません
+                    <button type="button" className="fish-suggest-add" onClick={onRequestNewFish}>
+                      ＋「{row.query.trim()}」を図鑑に登録する
+                    </button>
+                  </div>
                 ) : (
                   filtered.slice(0, 30).map((f) => (
                     <div
@@ -83,7 +89,15 @@ function CatchRow({ row, index, showIndex, removable, fishMaster, onChange, onRe
                 )}
               </div>
             )}
+            {canAddFish && (
+              <button type="button" className="auth-link form-inline-link" onClick={onRequestNewFish}>
+                図鑑にない魚を登録する
+              </button>
+            )}
           </>
+        )}
+        {selectedFish?.needsReview && (
+          <span className="form-note">この魚は登録したばかりです。イラストは準備中です。</span>
         )}
       </label>
 
@@ -98,7 +112,7 @@ function CatchRow({ row, index, showIndex, removable, fishMaster, onChange, onRe
             inputMode="decimal"
             value={row.size}
             onChange={(e) => onChange({ size: e.target.value })}
-            placeholder={selectedFish ? `${selectedFish.sizeMin}〜${selectedFish.sizeMax}` : ""}
+            placeholder={selectedFish?.sizeMin != null ? `${selectedFish.sizeMin}〜${selectedFish.sizeMax}` : ""}
           />
         </label>
 
@@ -148,12 +162,29 @@ function CatchRow({ row, index, showIndex, removable, fishMaster, onChange, onRe
  */
 export default function AddRecordForm({ fish: fixedFish, record, onClose, onSaved }) {
   const { user } = useAuth()
-  const { fishMaster } = useFishMaster()
+  const { fishMaster, reload: reloadFish } = useFishMaster()
   const isEdit = Boolean(record)
   const [rows, setRows] = useState(() => [newRow(fixedFish, record)])
   const [date, setDate] = useState(record ? record.date : todayStr())
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
+  // 「図鑑にない魚を登録する」を開いた行の key
+  const [newFishRowKey, setNewFishRowKey] = useState(null)
+  // 登録直後は図鑑の再読込が終わるまで fishMaster に居ないので、ここで保持しておく
+  const [addedFish, setAddedFish] = useState([])
+
+  function findFish(id) {
+    if (!id) return null
+    if (fixedFish && fixedFish.id === id) return fixedFish
+    return fishMaster.find((f) => f.id === id) || addedFish.find((f) => f.id === id) || null
+  }
+
+  function handleFishAdded(fish) {
+    setAddedFish((prev) => [...prev, fish])
+    updateRow(newFishRowKey, { fishId: fish.id, query: fish.name })
+    setNewFishRowKey(null)
+    reloadFish()
+  }
 
   function updateRow(key, patch) {
     setRows((prev) => prev.map((r) => (r.key === key ? { ...r, ...patch } : r)))
@@ -173,7 +204,7 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
     setSubmitting(true)
 
     const items = rows.map((r) => {
-      const fish = fishMaster.find((f) => f.id === r.fishId) || fixedFish
+      const fish = findFish(r.fishId)
       const size = Number(r.size)
       return {
         fish,
@@ -181,7 +212,8 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
           fishId: fish.id,
           size,
           count: Number(r.count),
-          sizeClass: classifyBySize(size, fish.sizeMin, fish.sizeMax),
+          // サイズ帯が未設定の魚種は仮に "adult" で保存する（表示時は都度判定し直すので、整備後に正しいクラスになる）
+          sizeClass: classifyBySize(size, fish.sizeMin, fish.sizeMax) ?? "adult",
           date,
         },
       }
@@ -250,9 +282,12 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
               index={i}
               showIndex={rows.length > 1}
               removable={!isEdit && rows.length > 1}
+              canAddFish={!isEdit}
               fishMaster={fishMaster}
+              findFish={findFish}
               onChange={(patch) => updateRow(row.key, patch)}
               onRemove={() => removeRow(row.key)}
+              onRequestNewFish={() => setNewFishRowKey(row.key)}
             />
           ))}
 
@@ -275,6 +310,15 @@ export default function AddRecordForm({ fish: fixedFish, record, onClose, onSave
           </button>
         </form>
       </div>
+
+      {newFishRowKey != null && (
+        <NewFishForm
+          initialName={(rows.find((r) => r.key === newFishRowKey)?.query || "").trim()}
+          fishMaster={fishMaster}
+          onClose={() => setNewFishRowKey(null)}
+          onSaved={handleFishAdded}
+        />
+      )}
     </div>
   )
 }

@@ -115,6 +115,8 @@ export async function updateProfile(userId, nickname) {
 // ============================================================
 
 const FISH_IMAGE_BUCKET = "fish-images"
+// 画像未整備（ユーザー登録直後など）の魚種に表示する仮画像
+const FISH_PLACEHOLDER = `${import.meta.env.BASE_URL}fish-placeholder.svg`
 
 /** DB行(snake_case)を、アプリ内で使う魚種オブジェクト(camelCase + illustration URL)に変換する */
 function fromDbFish(row) {
@@ -125,12 +127,14 @@ function fromDbFish(row) {
     tax: row.tax,
     env: row.env,
     rarity: row.rarity,
-    sizeMin: Number(row.size_min),
-    sizeMax: Number(row.size_max),
+    sizeMin: row.size_min == null ? null : Number(row.size_min),
+    sizeMax: row.size_max == null ? null : Number(row.size_max),
     imagePath: row.image_path,
     illustration: row.image_path
       ? supabase.storage.from(FISH_IMAGE_BUCKET).getPublicUrl(row.image_path).data.publicUrl
-      : "",
+      : FISH_PLACEHOLDER,
+    needsReview: Boolean(row.needs_review),
+    createdBy: row.created_by ?? null,
     tokuchou: row.tokuchou ?? "",
     miwake: row.miwake ?? "",
     standard: row.standard ?? "",
@@ -160,6 +164,7 @@ function toDbFish(patch) {
   if ("seriesId" in patch) out.series_id = patch.seriesId || null
   if ("seriesStage" in patch) out.series_stage = patch.seriesStage ?? null
   if ("sortOrder" in patch) out.sort_order = patch.sortOrder
+  if ("needsReview" in patch) out.needs_review = patch.needsReview
   return out
 }
 
@@ -173,6 +178,35 @@ export async function getFishMaster() {
 /** 魚種を1件追加する（管理者のみ。RLSで保護） */
 export async function createFish(fish) {
   const { data, error } = await supabase.from("fish").insert(toDbFish(fish)).select().single()
+  if (error) throw error
+  return fromDbFish(data)
+}
+
+/**
+ * 一般ユーザーが図鑑にない魚種を登録する。
+ * id・レア度・画像などはDBトリガー(guard_fish_insert)が自動で決めるので、ここでは送らない。
+ * 登録されると needs_review=true になり、Edge Function 経由で管理者にメール通知が飛ぶ。
+ */
+export async function submitFish({ name, en, env, tax, sizeMin, sizeMax, memo }) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const { data, error } = await supabase
+    .from("fish")
+    .insert({
+      id: "pending", // トリガーで u001 形式に上書きされる
+      name: name.trim(),
+      en: (en || "").trim(),
+      env,
+      tax,
+      rarity: 2,
+      size_min: sizeMin ?? null,
+      size_max: sizeMax ?? null,
+      tokuchou: memo?.trim() || null,
+      created_by: user.id,
+    })
+    .select()
+    .single()
   if (error) throw error
   return fromDbFish(data)
 }

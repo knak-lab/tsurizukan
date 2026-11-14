@@ -25,6 +25,7 @@ const KID_ADULT_SPLIT = 0.4
  * 例) sizeMin=25, sizeMax=50 なら -25 ベビー / 25-35 ひよっこ / 35-50 おとな / 50- ヌシ
  */
 export function classifyBySize(size, sizeMin, sizeMax) {
+  if (!hasSizeRange(sizeMin, sizeMax)) return null // サイズ帯が未設定（調査中）の魚種はクラス判定しない
   if (!(sizeMax > sizeMin)) return "baby"
   if (size < sizeMin) return "baby"
   if (size >= sizeMax) return "nushi"
@@ -33,11 +34,22 @@ export function classifyBySize(size, sizeMin, sizeMax) {
 }
 
 export function classInfo(classKey) {
-  return CLASS_INFO[classKey]
+  return classKey ? CLASS_INFO[classKey] : null
+}
+
+/** 標準サイズ帯が設定されているか（ユーザー登録の魚種は未設定のことがある） */
+export function hasSizeRange(sizeMin, sizeMax) {
+  return sizeMin != null && sizeMax != null
+}
+
+/** 図鑑カードなどに出すサイズ帯の表示文字列 */
+export function formatSizeRange(sizeMin, sizeMax) {
+  return hasSizeRange(sizeMin, sizeMax) ? `${sizeMin}〜${sizeMax}cm` : "サイズ調査中"
 }
 
 /** sizeMin〜sizeMaxの範囲内でsizeが何%の位置かを0〜100に収めて返す */
 export function sizePercent(size, sizeMin, sizeMax) {
+  if (!hasSizeRange(sizeMin, sizeMax)) return 50
   if (sizeMax <= sizeMin) return 0
   const pct = ((size - sizeMin) / (sizeMax - sizeMin)) * 100
   return Math.min(100, Math.max(0, pct))

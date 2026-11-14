@@ -67,7 +67,8 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
               {best ? (
                 <>
                   <div style={{ fontSize: 12, color: "var(--sub)", marginTop: 2 }}>
-                    自己ベスト: <b style={{ color: "var(--ink)" }}>{best.size}cm</b>（{ci.emoji} {ci.label}）
+                    自己ベスト: <b style={{ color: "var(--ink)" }}>{best.size}cm</b>
+                    {ci ? `（${ci.emoji} ${ci.label}）` : "（サイズ帯は調査中）"}
                     <span className="total-count">
                       ・合計 <b style={{ color: "var(--ink)" }}>{total}匹</b>
                     </span>
