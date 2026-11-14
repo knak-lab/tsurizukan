@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 import { useAuth } from "./context/AuthContext"
 import { useFishMaster } from "./context/FishMasterContext"
 import { getRecords, hasPendingLegacyImport, importLegacyRecords } from "./services/storage"
@@ -31,8 +31,9 @@ function App() {
   const [records, setRecords] = useState([])
   const [recordsLoading, setRecordsLoading] = useState(true)
   const [recordsError, setRecordsError] = useState(null)
-  const [captureFish, setCaptureFish] = useState(null)
-  const [bestUpdate, setBestUpdate] = useState(null)
+  // 保存後の演出（初捕獲/自己ベスト更新）の待ち行列。複数魚種をまとめて記録したとき順番に見せる
+  const [effects, setEffects] = useState([])
+  const dismissEffect = useCallback(() => setEffects((prev) => prev.slice(1)), [])
   const [showNicknamePrompt, setShowNicknamePrompt] = useState(false)
   const [importBanner, setImportBanner] = useState(false)
   const [importing, setImporting] = useState(false)
@@ -91,14 +92,19 @@ function App() {
     }
   }
 
-  async function handleRecordSaved(result) {
+  async function handleRecordSaved(events) {
     await refreshRecords()
-    if (result?.type === "first-catch") {
-      setCaptureFish(result.fish)
-    } else if (result?.type === "best-update") {
-      setBestUpdate(result)
+    if (Array.isArray(events) && events.length > 0) {
+      // 初捕獲の演出を先に、自己ベスト更新トーストを後に見せる
+      const ordered = [
+        ...events.filter((e) => e.type === "first-catch"),
+        ...events.filter((e) => e.type === "best-update"),
+      ].map((e, i) => ({ ...e, id: `${Date.now()}-${i}` }))
+      setEffects((prev) => [...prev, ...ordered])
     }
   }
+
+  const currentEffect = effects[0]
 
   if (authLoading) {
     return <LoadingScreen />
@@ -297,10 +303,17 @@ function App() {
 
       {showRequests && <FeatureRequestScreen onClose={() => setShowRequests(false)} />}
 
-      {captureFish && <CaptureEffect fish={captureFish} onClose={() => setCaptureFish(null)} />}
+      {currentEffect?.type === "first-catch" && (
+        <CaptureEffect key={currentEffect.id} fish={currentEffect.fish} onClose={dismissEffect} />
+      )}
 
-      {bestUpdate && (
-        <BestUpdateToast fish={bestUpdate.fish} size={bestUpdate.size} onClose={() => setBestUpdate(null)} />
+      {currentEffect?.type === "best-update" && (
+        <BestUpdateToast
+          key={currentEffect.id}
+          fish={currentEffect.fish}
+          size={currentEffect.size}
+          onClose={dismissEffect}
+        />
       )}
     </>
   )

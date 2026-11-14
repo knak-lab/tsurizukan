@@ -8,6 +8,7 @@ function fromDbRecord(row) {
     id: row.id,
     fishId: row.fish_id,
     size: row.size,
+    count: row.catch_count ?? 1,
     sizeClass: row.size_class,
     date: row.date,
   }
@@ -18,6 +19,7 @@ function toDbPatch(patch) {
   const dbPatch = {}
   if ("fishId" in patch) dbPatch.fish_id = patch.fishId
   if ("size" in patch) dbPatch.size = patch.size
+  if ("count" in patch) dbPatch.catch_count = patch.count
   if ("sizeClass" in patch) dbPatch.size_class = patch.sizeClass
   if ("date" in patch) dbPatch.date = patch.date
   return dbPatch
@@ -34,7 +36,7 @@ export async function getRecords(userId) {
   return data.map(fromDbRecord)
 }
 
-/** 記録を1件追加する。{ fishId, size, sizeClass, date } を渡す（idとuser_idは自動付与） */
+/** 記録を1件追加する。{ fishId, size, count, sizeClass, date } を渡す（idとuser_idは自動付与） */
 export async function saveRecord(record) {
   const {
     data: { user },
@@ -46,6 +48,20 @@ export async function saveRecord(record) {
     .single()
   if (error) throw error
   return fromDbRecord(data)
+}
+
+/**
+ * 記録を複数件まとめて追加する（1回の釣行で複数魚種を釣ったとき用）。
+ * records は { fishId, size, count, sizeClass, date } の配列。1回のinsertなので全件成功か全件失敗。
+ */
+export async function saveRecords(records) {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+  const rows = records.map((r) => ({ ...toDbPatch(r), user_id: user.id }))
+  const { data, error } = await supabase.from("records").insert(rows).select()
+  if (error) throw error
+  return data.map(fromDbRecord)
 }
 
 /** 記録を1件削除する */

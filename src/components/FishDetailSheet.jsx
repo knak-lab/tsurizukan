@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { classInfo, classifyBySize, sizePercent } from "../utils/classify"
-import { isCaught, bestRecordFor } from "../utils/isCaught"
+import { isCaught, bestRecordFor, totalCountFor } from "../utils/isCaught"
 import { deleteRecord } from "../services/storage"
 import AddRecordForm from "./AddRecordForm"
 
@@ -18,6 +18,7 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
   const best = caught ? bestRecordFor(fish.id, records) : null
   // sizeClass は保存済みの値ではなく、現在のサイズ帯から都度判定する（utils/classify.js）
   const ci = best ? classInfo(classifyBySize(best.size, fish.sizeMin, fish.sizeMax)) : null
+  const total = totalCountFor(fish.id, records)
   const pct = best ? sizePercent(best.size, fish.sizeMin, fish.sizeMax) : 0
 
   const fishRecords = records
@@ -67,6 +68,9 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
                 <>
                   <div style={{ fontSize: 12, color: "var(--sub)", marginTop: 2 }}>
                     自己ベスト: <b style={{ color: "var(--ink)" }}>{best.size}cm</b>（{ci.emoji} {ci.label}）
+                    <span className="total-count">
+                      ・合計 <b style={{ color: "var(--ink)" }}>{total}匹</b>
+                    </span>
                   </div>
                   <div className="class-track">
                     <div className="marker" style={{ left: `${pct}%` }} />
@@ -110,6 +114,7 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
                       >
                         <span className="record-date">{formatDate(r.date)}</span>
                         <span className="record-size">{r.size}cm</span>
+                        {(r.count ?? 1) > 1 && <span className="record-count">×{r.count}匹</span>}
                         {rci && (
                           <span
                             className={`record-class-badge ${rci.key === "nushi" ? "nushi" : ""}`}
