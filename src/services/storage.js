@@ -239,6 +239,17 @@ export async function countRecordsForFish(fishId) {
   return count ?? 0
 }
 
+/**
+ * 魚種 sourceId を targetId に統合する（管理者のみ。supabase/merge_fish.sql の RPC）。
+ * 全ユーザーの釣果記録を targetId に付け替えてから sourceId を削除する。付け替えた件数を返す。
+ * 画像の後片付けは呼び出し側で行う。
+ */
+export async function mergeFish(sourceId, targetId) {
+  const { data, error } = await supabase.rpc("merge_fish", { source_id: sourceId, target_id: targetId })
+  if (error) throw error
+  return data ?? 0
+}
+
 /** 魚画像をアップロードする。filename はバケット内のパス（例: "042_ウツボ.png"）。管理者のみ */
 export async function uploadFishImage(file, filename) {
   const { error } = await supabase.storage
