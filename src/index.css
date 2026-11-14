@@ -1529,3 +1529,35 @@ header.app .wave {
   font-weight: 700;
   cursor: pointer;
 }
+
+/* ---- 管理画面: 魚種のマージ ---- */
+.admin-merge-box {
+  border-top: 1px dashed var(--card-line);
+  padding-top: 12px;
+}
+.admin-merge-box.open {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid rgba(255, 122, 92, 0.35);
+  border-radius: 14px;
+  background: rgba(255, 122, 92, 0.05);
+}
+.admin-merge-title {
+  font-family: "Zen Maru Gothic", sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--coral);
+}
+.admin-merge-help {
+  font-size: 12px;
+  color: var(--sub);
+  line-height: 1.6;
+}
+.admin-merge-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+}

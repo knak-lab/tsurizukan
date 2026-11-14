@@ -7,6 +7,7 @@ import {
   countRecordsForFish,
   uploadFishImage,
   deleteFishImage,
+  mergeFish,
 } from "../services/storage"
 import {
   listFeatureRequests,
@@ -433,6 +434,10 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         <textarea className="form-input admin-textarea" rows={2} value={d.tsurikata} onChange={set("tsurikata")} />
       </label>
 
+      {mode === "edit" && (
+        <FishMergeBox fish={fish} fishMaster={fishMaster} disabled={busy} onMerged={onDone} />
+      )}
+
       {error && <div className="auth-error">{error}</div>}
 
       <div className="admin-form-actions">
@@ -449,6 +454,139 @@ function AdminFishForm({ mode, fish, initialDraft, fishMaster, onDone, onCancel 
         </button>
       </div>
     </form>
+  )
+}
+
+/**
+ * 魚種のマージ: この魚種（統合元）を既存の魚種（統合先）にまとめる。
+ * 全ユーザーの釣果記録が統合先に付け替わり、統合元は削除される。
+ * 主な用途は、ユーザーが重複・表記ゆれで登録した魚種（要整備）の片付け。
+ */
+function FishMergeBox({ fish, fishMaster, disabled, onMerged }) {
+  const [open, setOpen] = useState(false)
+  const [query, setQuery] = useState("")
+  const [targetId, setTargetId] = useState("")
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState(null)
+
+  const target = fishMaster.find((f) => f.id === targetId) || null
+
+  const candidates = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    if (!q) return []
+    return fishMaster
+      .filter((f) => f.id !== fish.id)
+      .filter((f) => f.name.toLowerCase().includes(q) || f.en.toLowerCase().includes(q) || f.id.includes(q))
+      .slice(0, 20)
+  }, [query, fishMaster, fish.id])
+
+  async function handleMerge() {
+    if (!target) return
+    setError(null)
+    let refCount = null
+    try {
+      refCount = await countRecordsForFish(fish.id)
+    } catch {
+      // 件数が取れなくても確認は続行する
+    }
+    const countText = refCount == null ? "この魚の釣果記録" : `この魚の釣果記録 ${refCount} 件`
+    const msg = [
+      `「${fish.name}」(${fish.id}) を「${target.name}」(${target.id}) に統合します。`,
+      "",
+      `・${countText}は、全ユーザー分「${target.name}」に付け替わります`,
+      `・「${fish.name}」は図鑑から削除されます`,
+      "",
+      "元に戻せません。続けますか？",
+    ].join("\n")
+    if (!window.confirm(msg)) return
+
+    setBusy(true)
+    try {
+      await mergeFish(fish.id, target.id)
+      if (fish.imagePath && fish.imagePath !== target.imagePath) {
+        try {
+          await deleteFishImage(fish.imagePath)
+        } catch {
+          // 画像削除の失敗は致命的ではない
+        }
+      }
+      onMerged()
+    } catch (err) {
+      setError(err.message || "統合に失敗しました")
+      setBusy(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <div className="admin-merge-box">
+        <button type="button" className="auth-link" onClick={() => setOpen(true)} disabled={disabled}>
+          既存の魚種に統合する（重複の片付け）
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="admin-merge-box open">
+      <div className="admin-merge-title">既存の魚種に統合する</div>
+      <div className="admin-merge-help">
+        「{fish.name}」の釣果記録を全ユーザー分、統合先の魚種に移してから「{fish.name}」を削除します。
+      </div>
+      <div className="form-field">
+        <input
+          type="text"
+          className="form-input"
+          placeholder="統合先を名前・英名・IDで検索"
+          // 管理フォーム内なので Enter で「保存する」が走らないようにする
+          onKeyDown={(e) => e.key === "Enter" && e.preventDefault()}
+          value={target ? `${target.name}（${target.id}）` : query}
+          onChange={(e) => {
+            setTargetId("")
+            setQuery(e.target.value)
+          }}
+          autoComplete="off"
+        />
+        {!target && query.trim() && (
+          <div className="fish-suggest">
+            {candidates.length === 0 ? (
+              <div className="fish-suggest-empty">該当する魚が見つかりません</div>
+            ) : (
+              candidates.map((f) => (
+                <div key={f.id} className="fish-suggest-item" onClick={() => setTargetId(f.id)}>
+                  {f.name} <span className="en">({f.id}{f.en ? `・${f.en}` : ""})</span>
+                  {f.needsReview && <span className="needs-review-badge">要整備</span>}
+                </div>
+              ))
+            )}
+          </div>
+        )}
+      </div>
+      {error && <div className="auth-error">{error}</div>}
+      <div className="admin-merge-actions">
+        <button
+          type="button"
+          className="auth-link"
+          onClick={() => {
+            setOpen(false)
+            setQuery("")
+            setTargetId("")
+            setError(null)
+          }}
+          disabled={busy}
+        >
+          やめる
+        </button>
+        <button
+          type="button"
+          className="record-delete admin-delete-btn"
+          onClick={handleMerge}
+          disabled={!target || busy || disabled}
+        >
+          {busy ? "統合中..." : "統合する"}
+        </button>
+      </div>
+    </div>
   )
 }
 
