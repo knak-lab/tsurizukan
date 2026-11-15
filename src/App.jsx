@@ -3,6 +3,7 @@ import { useAuth } from "./context/AuthContext"
 import { useFishMaster } from "./context/FishMasterContext"
 import { getRecords, hasPendingLegacyImport, importLegacyRecords } from "./services/storage"
 import { getRarityTier } from "./utils/rarityTier"
+import { isCaught } from "./utils/isCaught"
 import FilterTabs from "./components/FilterTabs"
 import FishCard from "./components/FishCard"
 import SeriesCard from "./components/SeriesCard"
@@ -25,6 +26,8 @@ function App() {
 
   const [activeEnv, setActiveEnv] = useState("all")
   const [activeTax, setActiveTax] = useState("all")
+  // 釣った魚だけ表示（見ている図鑑の持ち主が釣った魚。友だちの図鑑を見ているときはその人の分）
+  const [caughtOnly, setCaughtOnly] = useState(false)
   const [selectedFish, setSelectedFish] = useState(null)
   const [showAddForm, setShowAddForm] = useState(false)
   const [viewedUserId, setViewedUserId] = useState(null)
@@ -132,8 +135,12 @@ function App() {
     )
   }
 
+  const caughtCount = fishMaster.filter((f) => isCaught(f.id, records)).length
   const filtered = fishMaster.filter(
-    (f) => (activeEnv === "all" || f.env === activeEnv) && (activeTax === "all" || f.tax === activeTax),
+    (f) =>
+      (activeEnv === "all" || f.env === activeEnv) &&
+      (activeTax === "all" || f.tax === activeTax) &&
+      (!caughtOnly || isCaught(f.id, records)),
   )
 
   const standalone = filtered.filter((f) => !f.seriesId)
@@ -192,6 +199,9 @@ function App() {
         activeTax={activeTax}
         onEnvChange={setActiveEnv}
         onTaxChange={setActiveTax}
+        caughtOnly={caughtOnly}
+        caughtCount={caughtCount}
+        onCaughtOnlyChange={setCaughtOnly}
       />
 
       <div className="result-count">{filtered.length}種を表示中</div>
@@ -205,11 +215,19 @@ function App() {
           通信状態を確認してください。
         </div>
       ) : filtered.length === 0 ? (
-        <div className="empty-state">
-          この条件の魚はまだいません。
-          <br />
-          甲殻類セクションは今後追加予定です 🦀
-        </div>
+        caughtOnly ? (
+          <div className="empty-state">
+            この条件で釣った魚はまだいません。
+            <br />
+            「すべて」に切り替えると図鑑の全種が見られます 🎣
+          </div>
+        ) : (
+          <div className="empty-state">
+            この条件の魚はまだいません。
+            <br />
+            甲殻類セクションは今後追加予定です 🦀
+          </div>
+        )
       ) : (
         <>
           {teiban.length > 0 && (
