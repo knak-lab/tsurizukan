@@ -1,5 +1,6 @@
 import { useState } from "react"
 import { submitFish } from "../services/storage"
+import { findByExactName } from "../utils/fishSearch"
 
 const ENV_OPTIONS = [
   { value: "salt", label: "海水" },
@@ -28,12 +29,19 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
   const [error, setError] = useState(null)
 
   const trimmed = name.trim()
-  const duplicate = trimmed ? fishMaster.find((f) => f.name === trimmed) : null
+  // 和名だけでなく別名（地方名）とも突き合わせる。「ママカリ」はサッパの別名なので新規登録させない
+  const dupHit = trimmed ? findByExactName(fishMaster, trimmed) : null
+  const duplicate = dupHit?.fish ?? null
+  const duplicateMessage = dupHit
+    ? dupHit.viaAlias
+      ? `「${trimmed}」は「${dupHit.fish.name}」の別名として図鑑にあります`
+      : `「${dupHit.fish.name}」はすでに図鑑にあります`
+    : null
 
   function validate() {
     if (!trimmed) return "魚の名前を入力してください"
     if (trimmed.length > 30) return "魚の名前は30文字以内にしてください"
-    if (duplicate) return `「${trimmed}」はすでに図鑑にあります`
+    if (duplicate) return duplicateMessage
     // サイズはわからなければ空欄でOK（両方空なら「サイズ調査中」として登録）
     if (sizeMin === "" && sizeMax === "") return null
     if (sizeMin === "" || sizeMax === "") return "サイズは下限・上限の両方を入れるか、両方空欄にしてください"
@@ -97,7 +105,7 @@ export default function NewFishForm({ initialName = "", fishMaster, onClose, onS
               placeholder="例: ハオコゼ"
               autoComplete="off"
             />
-            {duplicate && <span className="form-note warn">「{duplicate.name}」はすでに図鑑にあります</span>}
+            {duplicate && <span className="form-note warn">{duplicateMessage}</span>}
           </label>
 
           <label className="form-field">

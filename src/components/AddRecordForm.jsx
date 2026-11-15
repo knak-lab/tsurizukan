@@ -4,6 +4,7 @@ import { getRecords, saveRecords, updateRecord } from "../services/storage"
 import { useAuth } from "../context/AuthContext"
 import { useFishMaster } from "../context/FishMasterContext"
 import NewFishForm from "./NewFishForm"
+import { searchFish } from "../utils/fishSearch"
 
 function todayStr() {
   const d = new Date()
@@ -32,11 +33,8 @@ function isRowValid(row) {
 function CatchRow({ row, index, showIndex, removable, canAddFish, fishMaster, findFish, onChange, onRemove, onRequestNewFish }) {
   const selectedFish = findFish(row.fishId)
 
-  const filtered = useMemo(() => {
-    if (!row.query) return fishMaster
-    const q = row.query.toLowerCase()
-    return fishMaster.filter((f) => f.name.includes(row.query) || f.en.toLowerCase().includes(q))
-  }, [row.query, fishMaster])
+  // 和名・英名に加えて別名（地方名）でも当てる。「ママカリ」で検索するとサッパが候補に出る
+  const filtered = useMemo(() => searchFish(fishMaster, row.query), [row.query, fishMaster])
 
   const count = Number(row.count) || 0
 
@@ -77,13 +75,15 @@ function CatchRow({ row, index, showIndex, removable, canAddFish, fishMaster, fi
                     </button>
                   </div>
                 ) : (
-                  filtered.slice(0, 30).map((f) => (
+                  filtered.slice(0, 30).map(({ fish: f, alias }) => (
                     <div
                       key={f.id}
                       className="fish-suggest-item"
                       onClick={() => onChange({ fishId: f.id, query: f.name })}
                     >
-                      {f.name} <span className="en">({f.en})</span>
+                      {f.name}
+                      {alias && <span className="fish-suggest-alias">別名: {alias}</span>}
+                      {f.en && <span className="en">({f.en})</span>}
                     </div>
                   ))
                 )}

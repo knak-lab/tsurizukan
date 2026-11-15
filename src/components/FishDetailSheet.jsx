@@ -52,6 +52,7 @@ export default function FishDetailSheet({ fish, records, readOnly, onClose, onRe
             </button>
             <div className="eyebrow">{fish.en}</div>
             <h2>{fish.name}</h2>
+            {fish.aliases?.length > 0 && <div className="fish-aliases">別名: {fish.aliases.join("、")}</div>}
           </div>
 
           <div className="sheet-illust">
