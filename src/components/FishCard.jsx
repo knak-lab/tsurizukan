@@ -1,4 +1,4 @@
-import { classInfo, classifyBySize, formatSizeRange } from "../utils/classify"
+import { classInfo, classifyBySize } from "../utils/classify"
 import { isCaught, bestRecordFor, totalCountFor } from "../utils/isCaught"
 import { getRarityTier, getRarityTierClass } from "../utils/rarityTier"
 
@@ -14,7 +14,8 @@ export default function FishCard({ fish, records, onClick }) {
       <div className={`rarity-badge ${getRarityTierClass(fish.rarity)}`}>{getRarityTier(fish.rarity)}</div>
       <div className="ribbon">
         <span className="name">{fish.name}</span>
-        <span className="en">{fish.en}</span>
+        {fish.aliases?.length > 0 && <span className="alias">{fish.aliases.join("・")}</span>}
+        {fish.en && <span className="en">{fish.en}</span>}
       </div>
       <div className="illust-wrap">
         {ci && (
@@ -33,10 +34,15 @@ export default function FishCard({ fish, records, onClick }) {
         />
       </div>
       <div className="fish-meta">
-        <div className="size-range">
-          {formatSizeRange(fish.sizeMin, fish.sizeMax)}
-        </div>
-        {caught && <div className="catch-total">{totalCountFor(fish.id, records)}匹</div>}
+        {/* 標準サイズ帯ではなく、この図鑑の持ち主が釣った最大サイズを出す（標準サイズ帯は詳細シートで見られる） */}
+        {best ? (
+          <div className="best-size">
+            最大 <b>{best.size}cm</b>
+            <span className="catch-total">・{totalCountFor(fish.id, records)}匹</span>
+          </div>
+        ) : (
+          <div className="size-range">未捕獲</div>
+        )}
       </div>
     </div>
   )
