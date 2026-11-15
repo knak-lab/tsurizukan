@@ -10,7 +10,8 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 新版は自動で切り替えず、UpdatePrompt の「更新」ボタンで切り替える
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'favicon.png', 'favicon-32.png', 'icons.svg'],
       manifest: {
         name: 'つりずかん',
