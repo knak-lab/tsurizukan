@@ -12,7 +12,16 @@ const TAX_TABS = [
   { key: "crust", label: "🦀 甲殻類", cls: "tax-crust", comingSoon: true },
 ]
 
-export default function FilterTabs({ fishMaster, activeEnv, activeTax, onEnvChange, onTaxChange }) {
+export default function FilterTabs({
+  fishMaster,
+  activeEnv,
+  activeTax,
+  onEnvChange,
+  onTaxChange,
+  caughtOnly,
+  caughtCount,
+  onCaughtOnlyChange,
+}) {
   const envCount = (key) =>
     key === "all" ? fishMaster.length : fishMaster.filter((f) => f.env === key).length
   const taxCount = (key) =>
@@ -20,6 +29,15 @@ export default function FilterTabs({ fishMaster, activeEnv, activeTax, onEnvChan
 
   return (
     <div className="filters">
+      <div className="filter-row">
+        <span className="filter-label">表示</span>
+        <div className={`chip ${!caughtOnly ? "active" : ""}`} onClick={() => onCaughtOnlyChange(false)}>
+          すべて <span className="count">{fishMaster.length}</span>
+        </div>
+        <div className={`chip ${caughtOnly ? "active" : ""}`} onClick={() => onCaughtOnlyChange(true)}>
+          🎣 釣った魚だけ <span className="count">{caughtCount}</span>
+        </div>
+      </div>
       <div className="filter-row">
         <span className="filter-label">生息環境</span>
         {ENV_TABS.map((t) => (
